@@ -1,0 +1,188 @@
+{
+  "_about": "Everything wrong at once: ctx nearly full, 5h burning out in minutes, CI red, prod deploy failed, stale PR data, low battery, hot CPU. wk is 71% but on day 6, so pace keeps it green.",
+  "now": 1759400000,
+  "columns": 120,
+  "claude": {
+    "session_id": "a1b2c3d4-5e6f-4a1b-9c8d-0123456789ab",
+    "session_name": "statusline redesign",
+    "model": {
+      "id": "claude-opus-5-5",
+      "display_name": "Opus 5.5"
+    },
+    "effort": {
+      "level": "xhigh"
+    },
+    "workspace": {
+      "current_dir": "/Users/dev/code/acme-shop",
+      "repo": {
+        "host": "github.com",
+        "owner": "acme",
+        "name": "acme-shop"
+      }
+    },
+    "cost": {
+      "total_duration_ms": 11400000,
+      "total_lines_added": 1200,
+      "total_lines_removed": 480
+    },
+    "context_window": {
+      "used_percentage": 91,
+      "context_window_size": 200000
+    },
+    "rate_limits": {
+      "five_hour": {
+        "used_percentage": 94,
+        "resets_at": 1759412360
+      },
+      "seven_day": {
+        "used_percentage": 71,
+        "resets_at": 1759486400
+      }
+    },
+    "prompt_cache": {
+      "warm": false
+    },
+    "pr": {
+      "number": 142,
+      "url": "https://github.com/acme/acme-shop/pull/142",
+      "review_state": "changes_requested"
+    }
+  },
+  "git": {
+    "repo": "acme-shop",
+    "branch": "feat/rewards",
+    "staged": 7,
+    "modified": 4,
+    "untracked": 0,
+    "ahead": 5,
+    "behind": 2,
+    "last_commit": 1759388600
+  },
+  "project": {
+    "schema": 1,
+    "ci": {
+      "main": {
+        "runs": [
+          "ok",
+          "ok",
+          "fail",
+          "fail",
+          "fail"
+        ],
+        "updated_at": 1759399880,
+        "url": "https://github.com/acme/acme-shop/actions"
+      }
+    },
+    "deploy": {
+      "prod": {
+        "version": "v1.43",
+        "status": "fail",
+        "deployed_at": 1759399280,
+        "behind": 9,
+        "updated_at": 1759399940
+      },
+      "stg": {
+        "version": "v1.44",
+        "status": "running",
+        "updated_at": 1759399940
+      }
+    },
+    "prs": {
+      "open": 4,
+      "needs_review": 2,
+      "updated_at": 1759389200,
+      "items": [
+        {
+          "number": 412,
+          "checks": "fail"
+        },
+        {
+          "number": 409,
+          "checks": "pass"
+        },
+        {
+          "number": 405,
+          "checks": "pending"
+        },
+        {
+          "number": 398,
+          "checks": "fail"
+        }
+      ]
+    },
+    "branches": {
+      "feat/rewards": {
+        "checks": {
+          "pass": 10,
+          "fail": 2,
+          "pending": 0
+        },
+        "updated_at": 1759399880
+      }
+    },
+    "extra": [
+      {
+        "icon": "alert",
+        "text": "migration pending",
+        "state": "warn",
+        "updated_at": 1759399940
+      }
+    ]
+  },
+  "system": {
+    "battery": {
+      "pct": 22,
+      "ac": false
+    },
+    "cpu": {
+      "usage": 100,
+      "load": "15.20",
+      "cores": 12,
+      "top": "node"
+    },
+    "memory": {
+      "pressure": 2,
+      "used_pct": 63,
+      "comp_mb": 6656,
+      "comp_trend": "up",
+      "swap_mb": 1843,
+      "swap_trend": "up",
+      "top": {
+        "name": "Chrome",
+        "mb": 8294
+      }
+    }
+  },
+  "week_history": [
+    {
+      "at": 1758885200,
+      "pct": 0,
+      "resets_at": 1759486400
+    },
+    {
+      "at": 1758953600,
+      "pct": 12,
+      "resets_at": 1759486400
+    },
+    {
+      "at": 1759040000,
+      "pct": 21,
+      "resets_at": 1759486400
+    },
+    {
+      "at": 1759126400,
+      "pct": 33,
+      "resets_at": 1759486400
+    },
+    {
+      "at": 1759212800,
+      "pct": 47,
+      "resets_at": 1759486400
+    },
+    {
+      "at": 1759299200,
+      "pct": 60,
+      "resets_at": 1759486400
+    }
+  ]
+}

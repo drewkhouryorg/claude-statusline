@@ -1,0 +1,7 @@
+[
+  {"status": "in_progress", "conclusion": ""},
+  {"status": "completed", "conclusion": "failure"},
+  {"status": "completed", "conclusion": "cancelled"},
+  {"status": "queued", "conclusion": ""},
+  {"status": "completed", "conclusion": "success"}
+]

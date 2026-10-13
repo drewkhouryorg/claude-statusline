@@ -1,0 +1,8 @@
+[
+  {"number": 106, "checks": "pass"},
+  {"number": 105, "checks": "fail"},
+  {"number": 104, "checks": "pending"},
+  {"number": 103, "checks": "fail"},
+  {"number": 102, "checks": "none"},
+  {"number": 101, "checks": "none"}
+]

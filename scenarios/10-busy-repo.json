@@ -1,0 +1,179 @@
+{
+  "_about": "A busy repo: a worktree mid-merge with conflicts, a PR with changes requested and checks still running, and seven open PRs, which collapse to counts.",
+  "now": 1759400000,
+  "columns": 160,
+  "claude": {
+    "session_id": "a1b2c3d4-5e6f-4a1b-9c8d-0123456789ab",
+    "session_name": "statusline redesign",
+    "model": {
+      "id": "claude-opus-5-5",
+      "display_name": "Opus 5.5"
+    },
+    "effort": {
+      "level": "xhigh"
+    },
+    "workspace": {
+      "current_dir": "/Users/dev/code/acme-shop",
+      "repo": {
+        "host": "github.com",
+        "owner": "acme",
+        "name": "acme-shop"
+      },
+      "git_worktree": "payments"
+    },
+    "cost": {
+      "total_duration_ms": 5040000,
+      "total_lines_added": 142,
+      "total_lines_removed": 37
+    },
+    "context_window": {
+      "used_percentage": 54,
+      "context_window_size": 200000
+    },
+    "rate_limits": {
+      "five_hour": {
+        "used_percentage": 62,
+        "resets_at": 1759405400
+      },
+      "seven_day": {
+        "used_percentage": 30,
+        "resets_at": 1759745600
+      }
+    },
+    "prompt_cache": {
+      "warm": true
+    },
+    "pr": {
+      "number": 151,
+      "url": "https://github.com/acme/acme-shop/pull/151",
+      "review_state": "changes_requested"
+    }
+  },
+  "git": {
+    "repo": "acme-shop",
+    "branch": "fix/refunds",
+    "conflicts": 2,
+    "staged": 5,
+    "modified": 3,
+    "untracked": 1,
+    "ahead": 4,
+    "behind": 6,
+    "last_commit": 1759382000
+  },
+  "project": {
+    "schema": 1,
+    "ci": {
+      "main": {
+        "runs": [
+          "ok",
+          "ok",
+          "ok",
+          "fail",
+          "ok"
+        ],
+        "updated_at": 1759399880,
+        "url": "https://github.com/acme/acme-shop/actions"
+      }
+    },
+    "deploy": {
+      "prod": {
+        "version": "v1.42",
+        "status": "ok",
+        "deployed_at": 1759392800,
+        "behind": 3,
+        "updated_at": 1759399880
+      },
+      "stg": {
+        "version": "v1.43",
+        "status": "ok",
+        "deployed_at": 1759396400,
+        "updated_at": 1759399880
+      }
+    },
+    "prs": {
+      "open": 7,
+      "needs_review": 3,
+      "updated_at": 1759399940,
+      "items": [
+        {
+          "number": 151,
+          "checks": "pending"
+        },
+        {
+          "number": 150,
+          "checks": "pass"
+        },
+        {
+          "number": 148,
+          "checks": "pass"
+        },
+        {
+          "number": 147,
+          "checks": "fail"
+        },
+        {
+          "number": 145,
+          "checks": "pass"
+        },
+        {
+          "number": 141,
+          "checks": "none"
+        },
+        {
+          "number": 139,
+          "checks": "pass"
+        }
+      ]
+    },
+    "branches": {
+      "fix/refunds": {
+        "checks": {
+          "pass": 8,
+          "fail": 0,
+          "pending": 3
+        },
+        "updated_at": 1759399940
+      }
+    }
+  },
+  "system": {
+    "battery": {
+      "pct": 95,
+      "ac": true
+    },
+    "cpu": {
+      "usage": 23,
+      "load": "1.66",
+      "cores": 12
+    },
+    "memory": {
+      "pressure": 1,
+      "used_pct": 49,
+      "comp_mb": 4506,
+      "comp_trend": "steady",
+      "swap_mb": 2848
+    }
+  },
+  "week_history": [
+    {
+      "at": 1759144400,
+      "pct": 0,
+      "resets_at": 1759745600
+    },
+    {
+      "at": 1759191200,
+      "pct": 6,
+      "resets_at": 1759745600
+    },
+    {
+      "at": 1759277600,
+      "pct": 17,
+      "resets_at": 1759745600
+    },
+    {
+      "at": 1759364000,
+      "pct": 26,
+      "resets_at": 1759745600
+    }
+  ]
+}

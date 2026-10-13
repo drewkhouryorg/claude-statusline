@@ -1,0 +1,7 @@
+statusline/cache/
+statusline/error.log
+__pycache__/
+*.pyc
+node_modules/
+.private-words
+.DS_Store

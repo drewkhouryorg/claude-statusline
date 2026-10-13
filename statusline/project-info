@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+"""Read and write a repo's project-info.json (schema in docs/project-info.md).
+
+  project-info path                       where the file lives for this repo
+  project-info get [KEY...]               print the file, or one section
+  project-info set KEY... JSON            merge JSON into a section, stamp updated_at
+  project-info fresh KEY... SECONDS       exit 0 if that section is younger than SECONDS
+  project-info refresh [--force] KEY... SECONDS -- COMMAND...
+                                          if the section is older than SECONDS, run COMMAND
+                                          and make what it prints the section
+
+Keys are separate arguments, so branch names with dots or slashes need no escaping:
+  project-info set branches feat/rewards '{"checks": {"pass": 12, "fail": 0, "pending": 0}}'
+
+refresh is for hooks that run often, from many sessions at once:
+  - Fresh sections are left alone, so most calls start nothing.
+  - One section refreshes in one process at a time; others skip it.
+  - COMMAND succeeds when it prints a JSON object, whatever its exit code
+    (`gh pr checks` exits 8 while checks are pending). That object replaces
+    the section.
+  - On failure the old data stays, and the section gets `error` and
+    `tried_at`, so the status line can say why it's stale and the next try
+    waits another SECONDS. --force skips the wait and the freshness check.
+
+The file sits in the git common dir, so git never commits it and every
+worktree of the repo shares it. Writes are locked and atomic.
+"""
+import fcntl
+import hashlib
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+
+def info_path():
+    out = subprocess.run(["git", "rev-parse", "--git-common-dir"], capture_output=True, text=True)
+    if out.returncode != 0:
+        sys.exit("project-info: not inside a git repository")
+    # relative to here unless already absolute
+    return (Path.cwd() / out.stdout.strip()).resolve() / "project-info.json"
+
+
+def stamp(v):
+    """A time in epoch seconds, or None for anything else (a hand-edited file)."""
+    return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+
+def load(path):
+    try:
+        data = json.loads(path.read_text())
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def dig(data, keys):
+    for k in keys:
+        if not isinstance(data, dict) or k not in data:
+            return None
+        data = data[k]
+    return data
+
+
+def merge(old, new):
+    if isinstance(old, dict) and isinstance(new, dict):
+        return {**old, **{k: merge(old.get(k), v) for k, v in new.items()}}
+    return new
+
+
+def update(path, keys, change):
+    """Replace the section at `keys` with change(old section), under the lock."""
+    with open(path.with_name(path.name + ".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        data = load(path)
+        node = data
+        for k in keys[:-1]:
+            if not isinstance(node.get(k), dict):
+                node[k] = {}
+            node = node[k]
+        node[keys[-1]] = change(node.get(keys[-1]))
+        data["schema"] = 1
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(json.dumps(data, indent=2) + "\n")
+        tmp.replace(path)
+
+
+def cmd_set(path, keys, value, now):
+    if not keys:
+        sys.exit("project-info: set needs at least one key")
+    for key in ("updated_at", "tried_at"):
+        if isinstance(value, dict) and key in value and stamp(value[key]) is None:
+            sys.exit(f"project-info: {key} must be epoch seconds, not {value[key]!r}")
+    if isinstance(value, dict) and "updated_at" not in value:
+        value = {**value, "updated_at": int(now)}
+    update(path, keys, lambda old: merge(old, value))
+
+
+REFRESH_TIMEOUT = 60
+
+
+def due(section, window):
+    """Whether a section needs refreshing: never fetched, older than `window`,
+    or failed longer ago than `window`."""
+    section = section if isinstance(section, dict) else {}
+    last = max(stamp(section.get("updated_at")) or 0, stamp(section.get("tried_at")) or 0)
+    return time.time() - last >= window
+
+
+def run(command):
+    """(JSON object it printed, or None; why not)."""
+    try:
+        out = subprocess.run(command, capture_output=True, text=True, timeout=REFRESH_TIMEOUT)
+    except FileNotFoundError:
+        return None, f"{command[0]}: command not found"
+    except subprocess.TimeoutExpired:
+        return None, f"{command[0]}: no answer after {REFRESH_TIMEOUT}s"
+    try:
+        value = json.loads(out.stdout)
+        if isinstance(value, dict):
+            return value, None
+    except ValueError:
+        pass
+    lines = [line.strip() for line in out.stderr.splitlines() if line.strip()]
+    return None, lines[-1][:200] if lines else f"{command[0]} exited {out.returncode} without JSON"
+
+
+def cmd_refresh(path, args):
+    force = bool(args) and args[0] == "--force"
+    args = args[1:] if force else args
+    if "--" not in args or args.index("--") < 2 or args.index("--") == len(args) - 1:
+        sys.exit("project-info: usage: refresh [--force] KEY... SECONDS -- COMMAND...")
+    split = args.index("--")
+    keys, window, command = args[:split - 1], float(args[split - 1]), args[split + 1:]
+    if not force and not due(dig(load(path), keys), window):
+        return 0
+    locks = path.with_name("project-info.locks")
+    locks.mkdir(exist_ok=True)
+    name = hashlib.sha1("\0".join(keys).encode()).hexdigest()[:16]
+    with open(locks / name, "w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return 0  # another session is refreshing this section right now
+        # it may have finished between the check above and taking the lock
+        if not force and not due(dig(load(path), keys), window):
+            return 0
+        value, error = run(command)
+        now = int(time.time())
+        if value is not None:
+            update(path, keys, lambda old: {**value, "updated_at": now})
+            return 0
+        update(path, keys, lambda old: {**(old if isinstance(old, dict) else {}), "error": error, "tried_at": now})
+        print(f"project-info: refresh {' '.join(keys)}: {error}", file=sys.stderr)
+        return 1
+
+
+def main(argv, now=None):
+    now = now if now is not None else time.time()
+    if not argv or argv[0] in ("-h", "--help"):
+        print(__doc__.strip())
+        return 0
+    cmd, args = argv[0], argv[1:]
+    path = info_path()
+    if cmd == "path":
+        print(path)
+    elif cmd == "get":
+        section = dig(load(path), args) if args else load(path)
+        if section is None:
+            return 1
+        print(json.dumps(section, indent=2))
+    elif cmd == "set":
+        if len(args) < 2:
+            sys.exit("project-info: usage: set KEY... JSON")
+        try:
+            value = json.loads(args[-1])
+        except ValueError as e:
+            sys.exit(f"project-info: value is not JSON: {e}")
+        cmd_set(path, args[:-1], value, now)
+    elif cmd == "refresh":
+        return cmd_refresh(path, args)
+    elif cmd == "fresh":
+        if len(args) < 2:
+            sys.exit("project-info: usage: fresh KEY... SECONDS")
+        section = dig(load(path), args[:-1])
+        at = stamp(section.get("updated_at")) if isinstance(section, dict) else None
+        return 0 if at is not None and now - at < float(args[-1]) else 1
+    else:
+        sys.exit(f"project-info: unknown command {cmd!r} (try --help)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

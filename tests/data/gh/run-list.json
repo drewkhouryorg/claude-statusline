@@ -1,0 +1,22 @@
+[
+  {
+    "conclusion": "success",
+    "status": "completed"
+  },
+  {
+    "conclusion": "",
+    "status": "in_progress"
+  },
+  {
+    "conclusion": "success",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "status": "completed"
+  }
+]

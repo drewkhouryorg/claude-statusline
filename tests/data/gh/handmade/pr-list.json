@@ -1,0 +1,17 @@
+[
+  {"number": 106, "isDraft": false, "reviewDecision": "APPROVED",
+   "statusCheckRollup": [{"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "SUCCESS"},
+                         {"__typename": "StatusContext", "state": "SUCCESS"}]},
+  {"number": 105, "isDraft": false, "reviewDecision": "CHANGES_REQUESTED",
+   "statusCheckRollup": [{"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "FAILURE"},
+                         {"__typename": "CheckRun", "status": "IN_PROGRESS", "conclusion": null}]},
+  {"number": 104, "isDraft": false, "reviewDecision": "REVIEW_REQUIRED",
+   "statusCheckRollup": [{"__typename": "StatusContext", "state": "PENDING"},
+                         {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "SUCCESS"}]},
+  {"number": 103, "isDraft": false, "reviewDecision": "",
+   "statusCheckRollup": [{"__typename": "StatusContext", "state": "ERROR"}]},
+  {"number": 102, "isDraft": false, "reviewDecision": "REVIEW_REQUIRED",
+   "statusCheckRollup": [{"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "SKIPPED"},
+                         {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "NEUTRAL"}]},
+  {"number": 101, "isDraft": true, "reviewDecision": "", "statusCheckRollup": []}
+]

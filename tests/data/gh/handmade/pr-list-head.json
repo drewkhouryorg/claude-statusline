@@ -1,0 +1,13 @@
+[{"statusCheckRollup": [
+  {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "SUCCESS"},
+  {"__typename": "StatusContext", "state": "SUCCESS"},
+  {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "FAILURE"},
+  {"__typename": "StatusContext", "state": "FAILURE"},
+  {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "TIMED_OUT"},
+  {"__typename": "CheckRun", "status": "IN_PROGRESS", "conclusion": null},
+  {"__typename": "CheckRun", "status": "QUEUED", "conclusion": null},
+  {"__typename": "StatusContext", "state": "PENDING"},
+  {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "SKIPPED"},
+  {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "NEUTRAL"},
+  {"__typename": "CheckRun", "status": "COMPLETED", "conclusion": "CANCELLED"}
+]}]

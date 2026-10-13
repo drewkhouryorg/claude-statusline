@@ -1,0 +1,159 @@
+{
+  "_about": "A Linux box: no battery, no compressed memory unless zswap is on, so mem shows just how full it is.",
+  "now": 1759400000,
+  "columns": 200,
+  "claude": {
+    "session_id": "a1b2c3d4-5e6f-4a1b-9c8d-0123456789ab",
+    "session_name": "statusline redesign",
+    "model": {
+      "id": "claude-opus-5-5",
+      "display_name": "Opus 5.5"
+    },
+    "effort": {
+      "level": "xhigh"
+    },
+    "workspace": {
+      "current_dir": "/Users/dev/code/acme-shop",
+      "repo": {
+        "host": "github.com",
+        "owner": "acme",
+        "name": "acme-shop"
+      }
+    },
+    "cost": {
+      "total_duration_ms": 5040000,
+      "total_lines_added": 142,
+      "total_lines_removed": 37
+    },
+    "context_window": {
+      "used_percentage": 54,
+      "context_window_size": 200000
+    },
+    "rate_limits": {
+      "five_hour": {
+        "used_percentage": 62,
+        "resets_at": 1759405400
+      },
+      "seven_day": {
+        "used_percentage": 30,
+        "resets_at": 1759745600
+      }
+    },
+    "prompt_cache": {
+      "warm": true
+    },
+    "pr": {
+      "number": 142,
+      "url": "https://github.com/acme/acme-shop/pull/142",
+      "review_state": "approved"
+    }
+  },
+  "git": {
+    "repo": "acme-shop",
+    "branch": "feat/rewards",
+    "staged": 3,
+    "modified": 1,
+    "untracked": 2,
+    "ahead": 2,
+    "behind": 0,
+    "last_commit": 1759397600
+  },
+  "project": {
+    "schema": 1,
+    "ci": {
+      "main": {
+        "runs": [
+          "ok",
+          "ok",
+          "ok",
+          "fail",
+          "ok"
+        ],
+        "updated_at": 1759399880,
+        "url": "https://github.com/acme/acme-shop/actions"
+      }
+    },
+    "deploy": {
+      "prod": {
+        "version": "v1.42",
+        "status": "ok",
+        "deployed_at": 1759392800,
+        "behind": 3,
+        "updated_at": 1759399880
+      },
+      "stg": {
+        "version": "v1.43",
+        "status": "ok",
+        "deployed_at": 1759396400,
+        "updated_at": 1759399880
+      }
+    },
+    "prs": {
+      "open": 4,
+      "needs_review": 2,
+      "updated_at": 1759399880,
+      "items": [
+        {
+          "number": 412,
+          "checks": "pass"
+        },
+        {
+          "number": 409,
+          "checks": "pass"
+        },
+        {
+          "number": 405,
+          "checks": "pending"
+        },
+        {
+          "number": 398,
+          "checks": "pass",
+          "draft": true
+        }
+      ]
+    },
+    "branches": {
+      "feat/rewards": {
+        "checks": {
+          "pass": 12,
+          "fail": 0,
+          "pending": 0
+        },
+        "updated_at": 1759399880
+      }
+    }
+  },
+  "system": {
+    "cpu": {
+      "usage": 41,
+      "load": "3.10",
+      "cores": 8
+    },
+    "memory": {
+      "pressure": 1,
+      "used_pct": 58
+    }
+  },
+  "week_history": [
+    {
+      "at": 1759144400,
+      "pct": 0,
+      "resets_at": 1759745600
+    },
+    {
+      "at": 1759191200,
+      "pct": 6,
+      "resets_at": 1759745600
+    },
+    {
+      "at": 1759277600,
+      "pct": 17,
+      "resets_at": 1759745600
+    },
+    {
+      "at": 1759364000,
+      "pct": 26,
+      "resets_at": 1759745600
+    }
+  ]
+}

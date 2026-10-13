@@ -1,0 +1,92 @@
+{
+  "_about": "A repo that doesn't publish project-info.json: the ship column disappears, so the week chart and the system column fit at 200.",
+  "now": 1759400000,
+  "columns": 200,
+  "claude": {
+    "session_id": "9f3e21c0-0000-4000-8000-000000000000",
+    "session_name": "fix zsh prompt",
+    "model": {
+      "id": "claude-opus-5-5",
+      "display_name": "Opus 5.5"
+    },
+    "effort": {
+      "level": "xhigh"
+    },
+    "workspace": {
+      "current_dir": "/Users/dev/dotfiles"
+    },
+    "cost": {
+      "total_duration_ms": 720000,
+      "total_lines_added": 4,
+      "total_lines_removed": 1
+    },
+    "context_window": {
+      "used_percentage": 12,
+      "context_window_size": 200000
+    },
+    "rate_limits": {
+      "five_hour": {
+        "used_percentage": 62,
+        "resets_at": 1759405400
+      },
+      "seven_day": {
+        "used_percentage": 58,
+        "resets_at": 1759702400
+      }
+    },
+    "prompt_cache": {
+      "warm": true
+    }
+  },
+  "git": {
+    "repo": "dotfiles",
+    "branch": "main",
+    "last_commit": 1759227200
+  },
+  "project": null,
+  "system": {
+    "battery": {
+      "pct": 95,
+      "ac": true
+    },
+    "cpu": {
+      "usage": 23,
+      "load": "1.66",
+      "cores": 12
+    },
+    "memory": {
+      "pressure": 1,
+      "used_pct": 49,
+      "comp_mb": 4506,
+      "comp_trend": "steady",
+      "swap_mb": 2848
+    }
+  },
+  "week_history": [
+    {
+      "at": 1759101200,
+      "pct": 0,
+      "resets_at": 1759702400
+    },
+    {
+      "at": 1759169600,
+      "pct": 9,
+      "resets_at": 1759702400
+    },
+    {
+      "at": 1759256000,
+      "pct": 25,
+      "resets_at": 1759702400
+    },
+    {
+      "at": 1759342400,
+      "pct": 41,
+      "resets_at": 1759702400
+    },
+    {
+      "at": 1759428800,
+      "pct": 52,
+      "resets_at": 1759702400
+    }
+  ]
+}

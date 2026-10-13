@@ -1,0 +1,42 @@
+── 60 columns ──
+▕54▏▕62◂▕30▏ ┃ acme-shop · detached 4f9c2e1 · clean · 9d
+▕▅▅▏▕▇▇▏▕  ◂ ┃ main ✓✓✓✗✓ · prod ✓ v1.42 · 2h · 3 behind · …
+▕██▏▕██▏▕▇▇▏ ┃ Opus 5.5 xhigh · 1h24m · statusline redesign…
+ctx  5h  wk  ┃ 5h ↻1h30m · wk ██████▓▓▓▓▓▓▓▓░░░░░░ ~70% by …
+
+── 80 columns ──
+▕54▏▕62◂▕30▏ ┃ acme-shop · detached 4f9c2e1 · clean · 9d
+▕▅▅▏▕▇▇▏▕  ◂ ┃ main ✓✓✓✗✓ · prod ✓ v1.42 · 2h · 3 behind · stg ✓ v1.43 · 1h · P…
+▕██▏▕██▏▕▇▇▏ ┃ Opus 5.5 xhigh · 1h24m · statusline redesign · a1b2c3d4 · +142 −…
+ctx  5h  wk  ┃ 5h ↻1h30m · wk ██████▓▓▓▓▓▓▓▓░░░░░░ ~70% by Mon 10am
+
+── 100 columns ──
+▕54▏▕62◂▕30▏   acme-shop        ┃ main  ✓✓✓✗✓                     ┃ Opus 5.5 xhigh · 1h24m
+▕▅▅▏▕▇▇▏▕  ◂   detached 4f9c2e1 ┃ prod  ✓ v1.42 · 2h · 3 behind   ┃ statusline redesign
+▕██▏▕██▏▕▇▇▏   clean · 9d       ┃ stg   ✓ v1.43 · 1h              ┃ a1b2c3d4 · +142 −37
+ctx  5h  wk                     ┃ PRs   #412✓ #409✓ #405⟳ #398✓ … ┃ 5h ↻1h30m · wk ██████▓▓▓▓▓▓▓▓░░…
+
+── 120 columns ──
+▕54▏▕62◂▕30▏   acme-shop        ┃ main  ✓✓✓✗✓                               ┃ Opus 5.5 xhigh · 1h24m
+▕▅▅▏▕▇▇▏▕  ◂   detached 4f9c2e1 ┃ prod  ✓ v1.42 · 2h · 3 behind             ┃ statusline redesign
+▕██▏▕██▏▕▇▇▏   clean · 9d       ┃ stg   ✓ v1.43 · 1h                        ┃ a1b2c3d4 · +142 −37
+ctx  5h  wk                     ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need r… ┃ 5h ↻1h30m · wk ██████▓▓▓▓▓▓▓▓░░░░░░ ~70% …
+
+── 160 columns ──
+▕54▏▕62◂▕30▏   acme-shop        ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m ┃              ▆▆ ▆▆ ██  30% now
+▕▅▅▏▕▇▇▏▕  ◂   detached 4f9c2e1 ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign    ┃  ▄▄ ▇▇ ▆▆ ▃▃ ██ ██ ██  ~70% by Mon 10am
+▕██▏▕██▏▕▇▇▏   clean · 9d       ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37    ┃   6 11  9  4 23 22 25  22%/day to use it all
+ctx  5h  wk                     ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃                        ┃  Mo Tu We Th Fr Sa Su  5h ↻1h30m
+
+── 200 columns ──
+▕54▏▕62◂▕30▏   acme-shop        ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m ┃              ▆▆ ▆▆ ██  30% now               ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕▅▅▏▕▇▇▏▕  ◂   detached 4f9c2e1 ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign    ┃  ▄▄ ▇▇ ▆▆ ▃▃ ██ ██ ██  ~70% by Mon 10am      ┃
+▕██▏▕██▏▕▇▇▏   clean · 9d       ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37    ┃   6 11  9  4 23 22 25  22%/day to use it all ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk                     ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃                        ┃  Mo Tu We Th Fr Sa Su  5h ↻1h30m             ┃
+
+── 240 columns ──
+▕54▏▕62◂▕30▏   acme-shop        ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m ┃              ▆▆ ▆▆ ██  30% now               ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕▅▅▏▕▇▇▏▕  ◂   detached 4f9c2e1 ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign    ┃  ▄▄ ▇▇ ▆▆ ▃▃ ██ ██ ██  ~70% by Mon 10am      ┃
+▕██▏▕██▏▕▇▇▏   clean · 9d       ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37    ┃   6 11  9  4 23 22 25  22%/day to use it all ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk                     ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃                        ┃  Mo Tu We Th Fr Sa Su  5h ↻1h30m             ┃
+

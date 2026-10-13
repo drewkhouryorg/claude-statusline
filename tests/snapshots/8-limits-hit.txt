@@ -1,0 +1,42 @@
+── 60 columns ──
+▕38▏▕!!◂▕!!◂ ┃ acme-shop · feat/rewards · ●3 ✚1 ?2 ↑2 · 40m…
+▕▁▁▏▕██▏▕██▏ ┃ main ✓✓✓✗✓ · prod ✓ v1.42 · 2h · 3 behind · …
+▕██▏▕██▏▕██▏ ┃ Opus 5.5 xhigh · 1h24m · statusline redesign…
+ctx  5h  wk  ┃ 5h full ↻50m · wk full ↻20h00m
+
+── 80 columns ──
+▕38▏▕!!◂▕!!◂ ┃ acme-shop · feat/rewards · ●3 ✚1 ?2 ↑2 · 40m · #142 ✓ lgtm
+▕▁▁▏▕██▏▕██▏ ┃ main ✓✓✓✗✓ · prod ✓ v1.42 · 2h · 3 behind · stg ✓ v1.43 · 1h · P…
+▕██▏▕██▏▕██▏ ┃ Opus 5.5 xhigh · 1h24m · statusline redesign · a1b2c3d4 · +142 −…
+ctx  5h  wk  ┃ 5h full ↻50m · wk full ↻20h00m
+
+── 100 columns ──
+▕38▏▕!!◂▕!!◂   acme-shop         ┃ main  ✓✓✓✗✓                      ┃ Opus 5.5 xhigh · 1h24m
+▕▁▁▏▕██▏▕██▏   feat/rewards      ┃ prod  ✓ v1.42 · 2h · 3 behind    ┃ statusline redesign
+▕██▏▕██▏▕██▏   ●3 ✚1 ?2 ↑2 · 40m ┃ stg   ✓ v1.43 · 1h               ┃ a1b2c3d4 · +142 −37
+ctx  5h  wk    #142 ✓ lgtm       ┃ PRs   #412✓ #409✓ #405⟳ #398✓ ·… ┃ 5h full ↻50m · wk full ↻20h00m
+
+── 120 columns ──
+▕38▏▕!!◂▕!!◂   acme-shop         ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m
+▕▁▁▏▕██▏▕██▏   feat/rewards      ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign
+▕██▏▕██▏▕██▏   ●3 ✚1 ?2 ↑2 · 40m ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37
+ctx  5h  wk    #142 ✓ lgtm       ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃ 5h full ↻50m · wk full ↻20h00m
+
+── 160 columns ──
+▕38▏▕!!◂▕!!◂   acme-shop         ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m ┃  ▂▂ ▆▆ ▄▄ ▅▅ ▅▅ ▄▄     100% now
+▕▁▁▏▕██▏▕██▏   feat/rewards      ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign    ┃  ██ ██ ██ ██ ██ ██     out until Fri 6am
+▕██▏▕██▏▕██▏   ●3 ✚1 ?2 ↑2 · 40m ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37    ┃  14 19 16 17 18 16  0
+ctx  5h  wk    #142 ✓ lgtm       ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃                        ┃  Fr Sa Su Mo Tu We Th  5h full ↻50m
+
+── 200 columns ──
+▕38▏▕!!◂▕!!◂   acme-shop         ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m ┃  ▂▂ ▆▆ ▄▄ ▅▅ ▅▅ ▄▄     100% now          ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕▁▁▏▕██▏▕██▏   feat/rewards      ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign    ┃  ██ ██ ██ ██ ██ ██     out until Fri 6am ┃
+▕██▏▕██▏▕██▏   ●3 ✚1 ?2 ↑2 · 40m ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37    ┃  14 19 16 17 18 16  0                    ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk    #142 ✓ lgtm       ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃                        ┃  Fr Sa Su Mo Tu We Th  5h full ↻50m      ┃
+
+── 240 columns ──
+▕38▏▕!!◂▕!!◂   acme-shop         ┃ main  ✓✓✓✗✓                                   ┃ Opus 5.5 xhigh · 1h24m ┃  ▂▂ ▆▆ ▄▄ ▅▅ ▅▅ ▄▄     100% now          ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕▁▁▏▕██▏▕██▏   feat/rewards      ┃ prod  ✓ v1.42 · 2h · 3 behind                 ┃ statusline redesign    ┃  ██ ██ ██ ██ ██ ██     out until Fri 6am ┃
+▕██▏▕██▏▕██▏   ●3 ✚1 ?2 ↑2 · 40m ┃ stg   ✓ v1.43 · 1h                            ┃ a1b2c3d4 · +142 −37    ┃  14 19 16 17 18 16  0                    ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk    #142 ✓ lgtm       ┃ PRs   #412✓ #409✓ #405⟳ #398✓ · 2 need review ┃                        ┃  Fr Sa Su Mo Tu We Th  5h full ↻50m      ┃
+

@@ -1,0 +1,42 @@
+── 60 columns ──
+▕12▏▕62◂▕58▏ ┃ dotfiles · main · clean · 2d
+▕  ▏▕▇▇▏▕▆▆◂ ┃ Opus 5.5 xhigh · 12m · fix zsh prompt · 9f3e…
+▕▃▃▏▕██▏▕██▏ ┃ 5h ↻1h30m · wk ████████████▓▓▓▓▓▓▓▓▶ out Sat…
+ctx  5h  wk
+
+── 80 columns ──
+▕12▏▕62◂▕58▏ ┃ dotfiles · main · clean · 2d
+▕  ▏▕▇▇▏▕▆▆◂ ┃ Opus 5.5 xhigh · 12m · fix zsh prompt · 9f3e21c0 · +4 −1
+▕▃▃▏▕██▏▕██▏ ┃ 5h ↻1h30m · wk ████████████▓▓▓▓▓▓▓▓▶ out Sat 11pm
+ctx  5h  wk
+
+── 100 columns ──
+▕12▏▕62◂▕58▏   dotfiles   ┃ Opus 5.5 xhigh · 12m ┃        ▄▄ ▄▄ ▅▅ ▄▄ ▄▄     58% now
+▕  ▏▕▇▇▏▕▆▆◂   main       ┃ fix zsh prompt       ┃     ▇▇ ██ ██ ██ ██ ██ ██  out Sat 11pm
+▕▃▃▏▕██▏▕██▏   clean · 2d ┃ 9f3e21c0 · +4 −1     ┃   0  9 16 16 17 16 16 10  16%/day to use it all
+ctx  5h  wk               ┃                      ┃  Su Mo Tu We Th Fr Sa Su  5h ↻1h30m
+
+── 120 columns ──
+▕12▏▕62◂▕58▏   dotfiles   ┃ Opus 5.5 xhigh · 12m ┃        ▄▄ ▄▄ ▅▅ ▄▄ ▄▄     58% now
+▕  ▏▕▇▇▏▕▆▆◂   main       ┃ fix zsh prompt       ┃     ▇▇ ██ ██ ██ ██ ██ ██  out Sat 11pm
+▕▃▃▏▕██▏▕██▏   clean · 2d ┃ 9f3e21c0 · +4 −1     ┃   0  9 16 16 17 16 16 10  16%/day to use it all
+ctx  5h  wk               ┃                      ┃  Su Mo Tu We Th Fr Sa Su  5h ↻1h30m
+
+── 160 columns ──
+▕12▏▕62◂▕58▏   dotfiles   ┃ Opus 5.5 xhigh · 12m ┃        ▄▄ ▄▄ ▅▅ ▄▄ ▄▄     58% now               ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕▇▇▏▕▆▆◂   main       ┃ fix zsh prompt       ┃     ▇▇ ██ ██ ██ ██ ██ ██  out Sat 11pm          ┃
+▕▃▃▏▕██▏▕██▏   clean · 2d ┃ 9f3e21c0 · +4 −1     ┃   0  9 16 16 17 16 16 10  16%/day to use it all ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk               ┃                      ┃  Su Mo Tu We Th Fr Sa Su  5h ↻1h30m             ┃
+
+── 200 columns ──
+▕12▏▕62◂▕58▏   dotfiles   ┃ Opus 5.5 xhigh · 12m ┃        ▄▄ ▄▄ ▅▅ ▄▄ ▄▄     58% now               ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕▇▇▏▕▆▆◂   main       ┃ fix zsh prompt       ┃     ▇▇ ██ ██ ██ ██ ██ ██  out Sat 11pm          ┃
+▕▃▃▏▕██▏▕██▏   clean · 2d ┃ 9f3e21c0 · +4 −1     ┃   0  9 16 16 17 16 16 10  16%/day to use it all ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk               ┃                      ┃  Su Mo Tu We Th Fr Sa Su  5h ↻1h30m             ┃
+
+── 240 columns ──
+▕12▏▕62◂▕58▏   dotfiles   ┃ Opus 5.5 xhigh · 12m ┃        ▄▄ ▄▄ ▅▅ ▄▄ ▄▄     58% now               ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕▇▇▏▕▆▆◂   main       ┃ fix zsh prompt       ┃     ▇▇ ██ ██ ██ ██ ██ ██  out Sat 11pm          ┃
+▕▃▃▏▕██▏▕██▏   clean · 2d ┃ 9f3e21c0 · +4 −1     ┃   0  9 16 16 17 16 16 10  16%/day to use it all ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk               ┃                      ┃  Su Mo Tu We Th Fr Sa Su  5h ↻1h30m             ┃
+

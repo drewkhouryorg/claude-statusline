@@ -1,0 +1,31 @@
+[
+  {
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "conclusion": "ACTION_REQUIRED",
+        "status": "COMPLETED"
+      },
+      {
+        "__typename": "CheckRun",
+        "conclusion": "ACTION_REQUIRED",
+        "status": "COMPLETED"
+      },
+      {
+        "__typename": "CheckRun",
+        "conclusion": "",
+        "status": "IN_PROGRESS"
+      },
+      {
+        "__typename": "CheckRun",
+        "conclusion": "SUCCESS",
+        "status": "COMPLETED"
+      },
+      {
+        "__typename": "CheckRun",
+        "conclusion": "SUCCESS",
+        "status": "COMPLETED"
+      }
+    ]
+  }
+]

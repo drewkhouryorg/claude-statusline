@@ -1,0 +1,42 @@
+── 60 columns ──
+▕--▏▕--▏▕--▏ ┃ tmp · no git
+▕  ▏▕  ▏▕  ▏ ┃ Opus 5.5 · untitled · 0d0e0f10
+▕  ▏▕  ▏▕  ▏
+ctx  5h  wk
+
+── 80 columns ──
+▕--▏▕--▏▕--▏ ┃ tmp · no git
+▕  ▏▕  ▏▕  ▏ ┃ Opus 5.5 · untitled · 0d0e0f10
+▕  ▏▕  ▏▕  ▏
+ctx  5h  wk
+
+── 100 columns ──
+▕--▏▕--▏▕--▏   tmp    ┃ Opus 5.5 ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕  ▏▕  ▏   no git ┃ untitled ┃
+▕  ▏▕  ▏▕  ▏          ┃ 0d0e0f10 ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk           ┃          ┃
+
+── 120 columns ──
+▕--▏▕--▏▕--▏   tmp    ┃ Opus 5.5 ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕  ▏▕  ▏   no git ┃ untitled ┃
+▕  ▏▕  ▏▕  ▏          ┃ 0d0e0f10 ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk           ┃          ┃
+
+── 160 columns ──
+▕--▏▕--▏▕--▏   tmp    ┃ Opus 5.5 ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕  ▏▕  ▏   no git ┃ untitled ┃
+▕  ▏▕  ▏▕  ▏          ┃ 0d0e0f10 ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk           ┃          ┃
+
+── 200 columns ──
+▕--▏▕--▏▕--▏   tmp    ┃ Opus 5.5 ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕  ▏▕  ▏   no git ┃ untitled ┃
+▕  ▏▕  ▏▕  ▏          ┃ 0d0e0f10 ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk           ┃          ┃
+
+── 240 columns ──
+▕--▏▕--▏▕--▏   tmp    ┃ Opus 5.5 ┃ cpu ▮▮▯▯▯▯▯▯ 23%
+▕  ▏▕  ▏▕  ▏   no git ┃ untitled ┃
+▕  ▏▕  ▏▕  ▏          ┃ 0d0e0f10 ┃ mem ▮▮▮▮▯▯▯▯ 49% · comp 4.4G →
+ctx  5h  wk           ┃          ┃
+
