@@ -1,3 +1,5 @@
+![claude-statusline logo](docs/images/logo.svg)
+
 # claude-statusline
 
 A status line for [Claude Code](https://code.claude.com) that works as a small dashboard. It shows how full your context is, how much of your usage limits you've used and where the week is heading, the state of your repo and its CI, deploys and PRs, and how hard your machine is working.
