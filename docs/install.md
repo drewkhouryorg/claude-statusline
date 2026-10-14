@@ -40,7 +40,7 @@ Copy `statusline/` anywhere and add this to `~/.claude/settings.json`:
 
 Claude Code runs the command through a shell, so put quotes around a path with spaces in it.
 
-Claude Code runs the status line itself whenever the conversation changes, such as after a reply or a `/model` switch. `refreshInterval: 5` adds a run every 5 seconds for what changes on its own: git, CPU and memory, and the ship column. Most runs reprint the last drawing without starting Python. It draws afresh when Claude Code sends something new or the width changes, and otherwise once the drawing is 10 seconds old.
+Claude Code runs the status line itself whenever the conversation changes, such as after a reply or a `/model` switch. `refreshInterval: 5` adds a run every 5 seconds for what changes on its own: git, CPU and memory, and the ship column. Most runs reprint the last drawing without starting Python. It draws afresh when Claude Code sends something new or the width changes, and otherwise once the drawing is 10 seconds old. The [side pane](pane.md), if you turn it on, runs Python itself, once every 10 seconds while it's on screen.
 
 Running `install.sh` again keeps the `refreshInterval` you set, so each computer can have its own.
 

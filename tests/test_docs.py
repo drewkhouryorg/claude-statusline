@@ -46,6 +46,9 @@ COMMANDS = {
     "UPDATE_SNAPSHOTS=1 make test": ("skip", "rewrites the snapshots"),
     "git diff tests/snapshots": ("skip", "shows your own changes; nothing to check"),
     "make screenshots": ("skip", "needs pillow and fonttools, and rewrites docs/images"),
+    # docs/pane.md
+    "claude plugin test pane": ("skip", "needs Claude Code; run it by hand with each version you use"),
+    "make pane-fixture": ("skip", "rewrites the pane's fixture; test_view checks it is current"),
     # docs/project-info.md
     "project-info set deploy prod '{\"version\": \"v1.43\", \"status\": \"ok\", \"deployed_at\": 1759400000}'":
         ("run", "scratch"),

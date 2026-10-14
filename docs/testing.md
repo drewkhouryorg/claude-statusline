@@ -1,18 +1,21 @@
 # Testing
 
 ```sh
-make test          # everything that runs on this machine, about 30 seconds
+make test          # everything but the side pane's own tests, about 35 seconds
 make test-linux    # the same in Linux containers (needs Docker)
 make test-bash     # the same under bash 3.2, 4.4 and 5.2 (needs Docker)
 ```
 
 `make test` is `python3 -m unittest discover -s tests`. It needs only Python, git and bash. A few tests skip themselves when what they need isn't there, and the skip says why.
 
+The [side pane](pane.md) is a Claude Code mod, and its tests run under Claude Code itself: `claude plugin test pane`. They aren't in `make test` or CI, which have no Claude Code to run them. `make test` does check that the pane's test fixture matches what `statusline.py --json` prints, so a change to that shape fails here first.
+
 ## What runs
 
 | File | What it checks | Real or simulated |
 | - | - | - |
 | `test_statusline.py` | Rendering and each reading: tanks, pace, the week chart and forecast, columns, ship rows, git status parsing, CPU and memory, the cleaning of `project-info.json`, settings. | Pure functions fed plain values. The macOS kernel calls run for real on a Mac. |
+| `test_view.py` | `statusline.py --json`: each part as data, carrying the same numbers and colour judgements the terminal draws, and the pane's fixture kept in step with it. | The scenarios, fed to the view. |
 | `test_scenarios.py` | Every scenario at seven widths against recorded snapshots. No line is ever wider than the terminal, from 30 to 260 columns. Columns line up. Junk in any field of `project-info.json`, or odd values from Claude Code (missing fields, a window that has just reset, percentages past 100, escape codes in a session name), never breaks the line, widens it or passes escape codes through. | The scenarios are made-up sessions. The junk and odd values are seeded random changes, 400 to `project-info.json`, and 40 per scenario plus 400 of the wrong type to Claude Code's input, the same on every run. |
 | `test_linux.py` | The Linux readers. | `/proc` files recorded from a Linux VM, plus hand-made ones for a machine under pressure (see `tests/data/linux/README.md`). On Linux, it also reads the real machine. |
 | `test_live.py` | The real `statusline.sh` and `install.sh`, run as Claude Code would. | A throwaway git repo, home folder and install folder. Real git, bash and Python. Your own `~/.claude` is never touched. |

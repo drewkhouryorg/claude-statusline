@@ -20,7 +20,7 @@ cd claude-statusline
 ./install.sh            # or ./install.sh --dry-run to see what it would change
 ```
 
-Start a new Claude Code session to see it. The installer copies three files to `~/.claude/claude-statusline/` and sets `statusLine` in `~/.claude/settings.json`, after backing that file up. Your other settings are kept. If you already had a `statusLine`, it's replaced, and `./install.sh --uninstall` puts it back. If you've set `CLAUDE_CONFIG_DIR`, it installs there instead of `~/.claude`.
+Start a new Claude Code session to see it. The installer copies three files and the [side pane](docs/pane.md), which stays off until you turn it on, to `~/.claude/claude-statusline/`, and sets `statusLine` in `~/.claude/settings.json`, after backing that file up. Your other settings are kept. If you already had a `statusLine`, it's replaced, and `./install.sh --uninstall` puts it back. If you've set `CLAUDE_CONFIG_DIR`, it installs there instead of `~/.claude`.
 
 If it doesn't appear, run `/status` in Claude Code. Your organization's managed settings can set `statusLine` for you, and nothing in your own settings overrides them. `"disableAllHooks": true` also turns off every status line.
 
@@ -45,6 +45,8 @@ The 5-hour and weekly limits show only on a Claude Pro or Max plan, because Clau
 | [Alerts](docs/widgets.md#alerts) | A fifth line that appears only when something needs you. |
 
 It adapts to your terminal's width: columns when there's room, rows when there isn't ([widths](docs/widgets.md#widths)).
+
+The same parts can also go in a [side pane](docs/pane.md): beside the transcript in a wide terminal, with more room to spell them out, and in the Claude desktop app's Code tab.
 
 ## Try it without Claude Code
 
@@ -73,7 +75,7 @@ Set these in the `env` block of `~/.claude/settings.json`. None are needed.
 
 ## Files it writes
 
-- **`~/.claude/claude-statusline/`:** the three files, the `python3` the installer chose, and your earlier `statusLine` if it replaced one.
+- **`~/.claude/claude-statusline/`:** the three files, the side pane in `pane/`, the `python3` the installer chose, and your earlier `statusLine` if it replaced one.
 - **`~/.claude/claude-statusline/cache/`:** the last drawing for each session, and short-lived git and system readings. Files unused for a day are removed.
 - **`~/.claude/usage-sensor/<session>.json`:** this session's usage, for your own hooks to read. See [usage files](docs/usage-files.md).
 - **`~/.claude/usage-sensor/history.jsonl`:** the week log the chart learns from, a few KB a week.
@@ -83,6 +85,8 @@ With `CLAUDE_CONFIG_DIR` set, all of these are under that folder instead of `~/.
 ## What it runs in your repo
 
 Only `git rev-parse`, `git status` and `git log`, with the two settings turned off that a repo's own config can use to make those start a program: a file monitor, and signature checking. Like any shell prompt that shows git status, `git status` still applies a repo's content filters if its config defines them, so treat a repo you don't trust as you would in your shell.
+
+The [side pane](docs/pane.md), once you turn it on, runs the same reads in each session that shows it, the desktop app's included.
 
 ## Troubleshooting
 
@@ -99,6 +103,7 @@ Only `git rev-parse`, `git status` and `git log`, with the two settings turned o
 - [compact-nudge](https://github.com/drewkhouryorg/claude-plugins), a separate Claude Code plugin that tells you when it's a good moment to `/compact`
 - [macOS and Linux](docs/platforms.md): where each reading comes from on each
 - [Usage files](docs/usage-files.md): your usage numbers, written for your own hooks
+- [The side pane](docs/pane.md): the same parts beside the transcript, and in the Claude desktop app
 - [The gallery](docs/gallery.md): a picture of every scenario
 - [Testing](docs/testing.md): run the tests with `make test`
 
