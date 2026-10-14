@@ -1,0 +1,6 @@
+{
+  "name": "statusline-pane",
+  "version": "0.1.0",
+  "description": "claude-statusline drawn in a side pane, sized to the pane",
+  "types": "./types/index.d.ts"
+}
