@@ -119,6 +119,7 @@ export function appView(el: AppElements, v: View, columns: number): RenderElemen
   }
 
   function session(s: Session): RenderElement {
+    // the mod API doesn't give the session's name, so a missing one isn't "untitled": leave it out
     return card('session', 'Session', [
       row('model', [
         <Text key="m" bold>{s.model ?? '?'}</Text>,
@@ -126,13 +127,13 @@ export function appView(el: AppElements, v: View, columns: number): RenderElemen
         s.fast && <Text key="f" color={paint('amber')}>fast</Text>,
         s.duration != null && <Text key="d">{fmtDur(s.duration)}</Text>,
       ]),
-      s.name ? <Text key="name">{s.name}</Text> : <Text key="name" dimColor>untitled</Text>,
+      !!s.name && <Text key="name">{s.name}</Text>,
       row('id', [
         !!s.id && <Text key="id" dimColor>{s.id}</Text>,
         !!(s.added || s.removed) && <Text key="add" color={paint('sage')}>{`+${s.added ?? 0}`}</Text>,
         !!(s.added || s.removed) && <Text key="rm" color={paint('brick')}>{`−${s.removed ?? 0}`}</Text>,
       ]),
-    ])
+    ].filter((x): x is RenderElement => !!x))
   }
 
   // a meter: the label and percent as the card's own text, so they never

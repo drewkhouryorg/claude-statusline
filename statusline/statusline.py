@@ -1150,7 +1150,7 @@ def tone(style):
 
 def view(inp, cols=None):
     m = build_model(inp)
-    return {
+    return scrubbed({
         "schema": VIEW_SCHEMA,
         "now": m["now"],
         "tanks": view_tanks(m),
@@ -1164,7 +1164,20 @@ def view(inp, cols=None):
                    for line in notice_rows(m) + [refresh_alert(m)] + [cache_alert(m)] if line],
         "ansi": render(inp, cols),
         "blocks": view_blocks(m),
-    }
+    })
+
+
+def scrubbed(v, keep=("ansi", "blocks")):
+    """Every string in the view as seg() would draw it: no control or format
+    characters from git, a repo's file or Claude Code. `ansi` and `blocks`
+    are drawings, already cleaned piece by piece, and keep their escapes."""
+    if isinstance(v, str):
+        return printable(v)
+    if isinstance(v, list):
+        return [scrubbed(x, ()) for x in v]
+    if isinstance(v, dict):
+        return {k: x if k in keep else scrubbed(x, ()) for k, x in v.items()}
+    return v
 
 
 def view_blocks(m):
@@ -1945,9 +1958,11 @@ def main(argv):
     c = clean_claude(json.loads(raw) if raw.strip() else {})
     cols = env_int("CLAUDE_STATUSLINE_COLUMNS", 0, 40, 1000) or env_int("COLUMNS", 200, 1, 10000)
     if argv[:1] == ["--json"]:  # each part as data, for a surface that draws it itself
+        # its input isn't Claude Code's, so it says nothing about the error the
+        # status line logged: leave that log for the person reading it
         print(json.dumps(view(gather(c), cols - 2), ensure_ascii=False))
-    else:
-        print(render(gather(c), cols - 2))
+        return
+    print(render(gather(c), cols - 2))
     (HERE / "error.log").unlink(missing_ok=True)  # drawn fine: an old error no longer applies
 
 

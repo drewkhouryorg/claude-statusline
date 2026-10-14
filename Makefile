@@ -4,7 +4,7 @@ PYTHON ?= python3
 
 BASH_VERSIONS ?= 3.2 4.4 5.2
 
-.PHONY: help test snapshots test-linux test-bash screenshots preview
+.PHONY: help test snapshots test-linux test-bash screenshots preview pane-fixture
 
 help:  ## list the tasks
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -28,6 +28,9 @@ test-bash:  ## run the tests under bash 3.2 (macOS), 4.4 and 5.2; BASH_VERSIONS=
 
 screenshots:  ## redraw docs/images from the scenarios
 	uv run --no-project --with pillow --with fonttools python tools/screenshots.py
+
+pane-fixture:  ## rewrite the pane's test fixture from the view; then read git diff
+	$(PYTHON) tools/pane_fixture.py
 
 preview:  ## every scenario in this terminal
 	$(PYTHON) tools/preview.py --all

@@ -1,7 +1,7 @@
-// What `statusline.py --json` prints for claude-statusline's scenarios/2-bad-day.json
-// at 100 columns, days starting 7am: a red 5h tank, failing CI, a failed
-// deploy, a dirty repo, memory pressure and two alerts. Regenerate from the
-// repo with sl.view(scenario, 100) when the view's shape changes.
+// What `statusline.py --json` prints for scenarios/2-bad-day.json at 100
+// columns, days starting 7am: a red 5h tank, failing CI, a failed deploy, a
+// dirty repo, memory pressure and two alerts. Written by tools/pane_fixture.py
+// (make pane-fixture); tests/test_view.py fails when it is out of date.
 import type { View } from '../../types'
 
 export const BAD_DAY: View = {

@@ -3,6 +3,7 @@ runs them, against a throwaway git repo, home folder and install folder.
 Nothing here touches your own ~/.claude."""
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -80,17 +81,33 @@ class Live(unittest.TestCase):
         self.assertIn("main  ✓✓✗", out)
         self.assertIn("prod  ✓ v9.1", out)
 
-    def test_json_gives_each_part_as_data_beside_the_drawing(self):
-        # what the desktop app's pane reads: the same repo, as data
+    def run_json(self, claude):
+        """statusline.py --json as the pane runs it."""
         out = subprocess.run([sys.executable, str(self.install / "statusline.py"), "--json"],
-                             input=json.dumps(self.claude()), capture_output=True, text=True, timeout=30,
+                             input=json.dumps(claude), capture_output=True, text=True, timeout=30,
                              env={**os.environ, "HOME": str(self.tmp), "COLUMNS": "200",
                                   "CLAUDE_STATUSLINE_DATA": str(self.data)})
         self.assertEqual(out.returncode, 0, out.stderr)
-        got = json.loads(out.stdout)
+        return json.loads(out.stdout)
+
+    def test_json_gives_each_part_as_data_beside_the_drawing(self):
+        # what the desktop app's pane reads: the same repo, as data
+        got = self.run_json(self.claude())
         self.assertEqual((got["repo"]["name"], got["repo"]["branch"]), ("shop", "feat/cart"))
         self.assertEqual([(m["kind"], m["count"]) for m in got["repo"]["marks"]], [("modified", 1), ("untracked", 1)])
-        self.assertEqual(visible(got["ansi"]), self.run_sh(self.claude()))
+        # the drawing beside it is the status line's own: the tanks and the repo
+        # column, left of the first rule. The commit's age is masked, since the
+        # two runs can fall either side of a second; the columns after it (the
+        # session's clock, the machine) move between runs anyway
+        same = lambda text: [re.sub(r"· \d+[smhd]\b", "· age", line.split("┃")[0]) for line in text.split("\n")]
+        self.assertEqual(same(visible(got["ansi"])), same(self.run_sh(self.claude())))
+
+    def test_a_json_run_leaves_the_error_log_for_its_reader(self):
+        # the pane's runs don't carry Claude Code's input, so they can't say the
+        # status line's error is gone; the log stays for README's troubleshooting
+        (self.install / "error.log").write_text("Traceback (most recent call last): ...\n")
+        self.run_json(self.claude())
+        self.assertTrue((self.install / "error.log").exists())
 
     def test_writes_this_sessions_usage_file_and_week_log(self):
         claude = self.claude()
@@ -310,6 +327,24 @@ class Installer(unittest.TestCase):
         self.assertTrue(os.access(dest / "project-info", os.X_OK))
         self.assertEqual(self.settings()["statusLine"],
                          {"type": "command", "command": str(dest / "statusline.sh"), "refreshInterval": 5})
+
+    def test_the_side_pane_installs_beside_the_status_line_it_runs(self):
+        # one install for both, so the mod and the script are the same version;
+        # the pane's tests stay in the checkout
+        self.install()
+        pane = self.home / ".claude" / "claude-statusline" / "pane"
+        self.assertTrue((pane / ".claude-plugin" / "plugin.json").exists())
+        self.assertTrue((pane / "hooks" / "register.tsx").exists())
+        self.assertFalse((pane / "tests").exists())
+        self.assertFalse((self.home / ".claude" / "settings.json").read_text().count("CLAUDE_CODE_PLUGIN_DIRS"))
+
+    def test_link_installs_link_the_side_pane_to_the_checkout(self):
+        self.install("--link")
+        pane = self.home / ".claude" / "claude-statusline" / "pane"
+        self.assertEqual(pane.resolve(), (ROOT / "pane").resolve())
+        self.install()  # and a copy install afterwards replaces the link, not the checkout
+        self.assertFalse(pane.is_symlink())
+        self.assertTrue((ROOT / "pane" / "tests").exists())
 
     def test_installing_again_keeps_the_interval_set_on_this_computer(self):
         self.install()

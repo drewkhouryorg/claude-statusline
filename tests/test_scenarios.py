@@ -105,6 +105,18 @@ def clean_text(test, out):
         test.assertEqual(odd, [], line)
 
 
+def strings(value):
+    """Every string inside `value`, however deep."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from strings(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from strings(v)
+
+
 def mutate(value, rng):
     """`value` with about a third of its leaves swapped for junk."""
     if isinstance(value, dict):
@@ -129,6 +141,24 @@ class UntrustedProjectInfo(unittest.TestCase):
                 except Exception as e:  # noqa: BLE001
                     self.fail(f"{type(e).__name__}: {e}\nproject={json.dumps(inp['project'])[:600]}")
                 clean_text(self, out)
+
+    def test_junk_never_reaches_the_view_raw(self):
+        # the pane draws the view's strings itself, so they must be as clean
+        # as the terminal's: a control character there blanks the pane, and a
+        # bidi override reverses a branch name
+        rng = random.Random(20261014)
+        base = json.loads((SCENARIOS / "2-bad-day.json").read_text())
+        hostile = "feat/‮gnp.exe\x9b31m\x1b]0;owned\x07"
+        system = dict(base["system"], cpu=dict(base["system"]["cpu"], top=hostile),
+                      memory=dict(base["system"]["memory"], top={"name": hostile, "mb": 8000}))
+        for i in range(200):
+            inp = dict(base, project=dict(mutate(base["project"], rng), schema=1),
+                       git=dict(base["git"], branch=hostile, repo=hostile), system=system)
+            with self.subTest(case=i):
+                view = sl.view(inp, 160)
+                json.dumps(view)
+                for text in strings({k: v for k, v in view.items() if k not in ("ansi", "blocks")}):
+                    clean_text(self, text)
 
     def test_wrong_shapes_for_whole_sections(self):
         base = json.loads((SCENARIOS / "1-healthy.json").read_text())

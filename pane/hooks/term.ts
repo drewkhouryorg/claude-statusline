@@ -85,7 +85,8 @@ function usage(v: View, width: number): Segment[][] {
   for (const t of v.tanks) {
     const name = t.label === 'ctx' ? 'Context' : t.label === '5h' ? '5-hour' : 'Week'
     if (t.pct === null) {
-      lines.push(kv(name, dim(t.label === 'ctx' ? 'no reading yet' : 'after the first reply')))
+      // the limits arrive with replies on Pro and Max plans, and never on an API key: say only what's known
+      lines.push(kv(name, dim('no reading yet')))
       continue
     }
     const value = [s(`${Math.round(t.pct)}%`, t.tone, true)]
@@ -201,7 +202,8 @@ function ship(sh: Ship): Segment[][] {
 function session(se: Session): Segment[][] {
   const lines = [kv('Model', s(se.model ?? '?', null, true), ...(se.effort ? [dim(` · ${se.effort} effort`)] : []), ...(se.fast ? [s(' · fast', 'amber')] : []))]
   if (se.duration != null) lines.push(kv('Running', s(fmtDur(se.duration))))
-  lines.push(kv('Name', se.name ? s(se.name) : dim('untitled')))
+  // the mod API doesn't give the session's name, so a missing one isn't "untitled": leave the row out
+  if (se.name) lines.push(kv('Name', s(se.name)))
   if (se.added || se.removed) lines.push(kv('Lines', s(`+${se.added ?? 0}`, 'sage'), s(' '), s(`−${se.removed ?? 0}`, 'brick')))
   if (se.id) lines.push(kv('ID', dim(se.id)))
   return lines

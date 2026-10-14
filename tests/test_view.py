@@ -1,9 +1,10 @@
 """statusline.py --json: each part as data, for a surface that draws it
 itself. It must carry the same numbers and judgements the terminal draws."""
 import json
+import sys
 import unittest
 
-from support import plain, scenario, sl, visible
+from support import ROOT, plain, scenario, sl, visible
 
 
 def view(name, **changes):
@@ -87,6 +88,15 @@ class View(unittest.TestCase):
         blocks = {b["name"]: [visible(l) for l in b["lines"]] for b in view("5-first-render")["blocks"]}
         self.assertEqual(list(blocks), ["tanks", "repo", "session", "system"])
         self.assertTrue(all(l.strip() for lines in blocks.values() for l in lines))
+
+    def test_the_panes_fixture_is_what_the_view_prints_now(self):
+        # pane/ draws from this snapshot in its own tests, which CI can't run;
+        # a field renamed here would otherwise vanish from the pane unseen
+        sys.path.insert(0, str(ROOT / "tools"))
+        import pane_fixture
+        committed = pane_fixture.FIXTURE.read_text()
+        self.assertEqual(committed, pane_fixture.fixture(),
+                         "pane/tests/fixtures/bad-day.ts is out of date: run make pane-fixture")
 
     def test_the_terminal_drawing_rides_along(self):
         inp = scenario("1-healthy")

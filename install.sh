@@ -8,13 +8,15 @@
 #   ./install.sh --uninstall  remove it, and put back the statusLine you had before
 #
 # It installs into Claude Code's config folder: $CLAUDE_CONFIG_DIR, or
-# ~/.claude. settings.json is backed up before it changes, and every other
-# setting in it is kept. Running this again is safe.
+# ~/.claude, with the side pane mod beside it in pane/ (turned on by hand:
+# see docs/pane.md). settings.json is backed up before it changes, and every
+# other setting in it is kept. Running this again is safe.
 if [ -z "${BASH_VERSION:-}" ]; then exec bash "$0" "$@"; fi  # started with sh
 set -euo pipefail
 
 CONFIG=${CLAUDE_CONFIG_DIR:-$HOME/.claude}
-SRC=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/statusline
+REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SRC=$REPO/statusline
 DEST=${CLAUDE_STATUSLINE_DEST:-$CONFIG/claude-statusline}
 SETTINGS=$CONFIG/settings.json
 FILES=(statusline.py statusline.sh project-info)
@@ -26,7 +28,7 @@ for arg in "$@"; do
     --dry-run) dry=yes ;;
     --no-settings) settings=no ;;
     --uninstall) action=uninstall ;;
-    -h|--help) sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,13p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown option: $arg (see --help)" >&2; exit 2 ;;
   esac
 done
@@ -124,6 +126,8 @@ if [[ $action == uninstall ]]; then
 
 Left in place, for you to remove if you want:
   - your usage files and week log: ${CLAUDE_STATUSLINE_DATA:-$CONFIG/usage-sensor}
+  - $DEST/pane in CLAUDE_CODE_PLUGIN_DIRS in settings.json, if you turned
+    the side pane on (see docs/pane.md)
   - backups of settings.json next to it (settings.json.bak-*)
   - in repos you set up for the ship column: .git/project-info.json and the
     make target and hooks you added (see docs/install.md)
@@ -147,6 +151,17 @@ if [[ $dry == no ]]; then
   done
   chmod +x "$DEST/statusline.sh" "$DEST/project-info" "$DEST/statusline.py"
   printf '%s\n' "$PYTHON" > "$DEST/python"  # the wrapper runs this one
+  # the side pane: the mod and the status line it runs come from one install,
+  # so they're always the same version. Its tests stay in the checkout.
+  rm -rf "$DEST/pane"  # a link from an earlier --link install, or an older copy
+  if [[ $mode == link ]]; then
+    ln -sfn "$REPO/pane" "$DEST/pane"
+  else
+    mkdir -p "$DEST/pane/.claude-plugin" "$DEST/pane/types"
+    cp "$REPO/pane/.claude-plugin/plugin.json" "$DEST/pane/.claude-plugin/"
+    cp -R "$REPO/pane/hooks" "$DEST/pane/"
+    cp "$REPO/pane/types/index.d.ts" "$DEST/pane/types/"
+  fi
 fi
 say "run the status line with $PYTHON"
 
@@ -162,6 +177,8 @@ Next:
   - Preview it here without Claude Code:  python3 tools/preview.py --all
   - Show CI, deploys and PRs for a repo: see docs/ship-column.md
     (the helper is $DEST/project-info)
+  - A side pane with the same parts, in the terminal and the desktop app:
+    add $DEST/pane to CLAUDE_CODE_PLUGIN_DIRS (see docs/pane.md)
   - A plugin that says when it's a good moment to /compact:
     https://github.com/drewkhouryorg/claude-plugins
 EOF

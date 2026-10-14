@@ -120,6 +120,6 @@ export type Drawing = { lines: Segment[][]; view?: View; error?: string }
 
 declare module 'claude-code' {
   interface PluginState {
-    'statusline-pane': { drawing: Drawing }
+    'statusline-pane': { drawing: Drawing; asked: boolean }
   }
 }
