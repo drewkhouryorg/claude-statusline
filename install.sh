@@ -56,7 +56,7 @@ from pathlib import Path
 step, path, dest, dry = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4] == "yes"
 script = str(dest / "statusline.sh")
 # Claude Code runs the command through a shell: quote a path with spaces
-want = {"type": "command", "command": shlex.quote(script), "refreshInterval": 1}
+want = {"type": "command", "command": shlex.quote(script), "refreshInterval": 5}
 ours = (want["command"], script)
 previous = dest / "previous-statusline.json"
 try:
@@ -71,6 +71,8 @@ if step == "check":
 old = current.get("statusLine")
 mine = isinstance(old, dict) and old.get("command") in ours
 if step == "write":
+    if mine:  # installing again keeps the interval or padding you set on this computer
+        want = {**old, "type": "command", "command": want["command"]}
     if old == want:
         print(f"{path} already points at {script}")
         sys.exit(0)

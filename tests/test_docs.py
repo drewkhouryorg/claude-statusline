@@ -42,6 +42,7 @@ COMMANDS = {
     # docs/testing.md
     "make test": ("skip", "this is the suite that is running"),
     "make test-linux": ("skip", "needs Docker; run it by hand before a release"),
+    "make test-bash": ("skip", "needs Docker; CI runs it on every push"),
     "UPDATE_SNAPSHOTS=1 make test": ("skip", "rewrites the snapshots"),
     "git diff tests/snapshots": ("skip", "shows your own changes; nothing to check"),
     "make screenshots": ("skip", "needs pillow and fonttools, and rewrites docs/images"),

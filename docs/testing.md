@@ -3,6 +3,7 @@
 ```sh
 make test          # everything that runs on this machine, about 30 seconds
 make test-linux    # the same in Linux containers (needs Docker)
+make test-bash     # the same under bash 3.2, 4.4 and 5.2 (needs Docker)
 ```
 
 `make test` is `python3 -m unittest discover -s tests`. It needs only Python, git and bash. A few tests skip themselves when what they need isn't there, and the skip says why.
@@ -41,6 +42,10 @@ Clock times in snapshots are in UTC, and the scenarios' days start at 7am, so th
 ## Linux
 
 `make test-linux` runs the whole suite in two containers: Python 3.8 on Alpine (BusyBox) and Python 3.13 on Debian (GNU coreutils). That covers the oldest supported Python and both kinds of `stat`, which the wrapper uses. CI runs the suite on macOS and Ubuntu (see `.github/workflows/test.yml`).
+
+## Bash versions
+
+`make test-bash` runs the whole suite under bash 3.2, 4.4 and 5.2, using the official `bash` images. macOS still ships 3.2 as `/bin/bash`, and it can be far slower than newer versions: one find and replace in the wrapper once took half a second a call there, and a few milliseconds in 5.2. CI runs all three on every push.
 
 ## Screenshots
 

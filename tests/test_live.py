@@ -52,8 +52,10 @@ class Live(unittest.TestCase):
         c.update(changes)
         return c
 
-    def run_sh(self, claude, **env):
-        out = subprocess.run(["bash", str(self.install / "statusline.sh")], input=json.dumps(claude),
+    def run_sh(self, claude, bash="bash", **env):
+        """claude is a dict, or the exact text Claude Code would send."""
+        text = claude if isinstance(claude, str) else json.dumps(claude)
+        out = subprocess.run([bash, str(self.install / "statusline.sh")], input=text,
                              capture_output=True, text=True, timeout=30,
                              env={**os.environ, "HOME": str(self.tmp), "COLUMNS": "200",
                                   "CLAUDE_STATUSLINE_DATA": str(self.data), **env})
@@ -128,6 +130,40 @@ class Live(unittest.TestCase):
         stub, log = self.python_that_logs()
         self.run_sh(claude, CLAUDE_STATUSLINE_PYTHON=stub)
         self.assertFalse(log.exists())
+
+    def test_clocks_sent_without_spaces_or_with_decimals_still_reuse_the_drawing(self):
+        compact = {"separators": (",", ":")}  # how Claude Code's JSON.stringify writes it
+        claude = self.claude()
+        claude["cost"] = dict(claude.get("cost") or {}, total_duration_ms=5_040_000.5, total_api_duration_ms=2_300.25)
+        self.run_sh(json.dumps(claude, **compact))
+        claude["cost"] = dict(claude["cost"], total_duration_ms=5_041_000.75, total_api_duration_ms=2_345.5)
+        stub, log = self.python_that_logs()
+        self.run_sh(json.dumps(claude, **compact), CLAUDE_STATUSLINE_PYTHON=stub)
+        self.assertFalse(log.exists())
+
+    def test_other_fields_ending_in_ms_still_redraw(self):
+        # only the two session clocks are left out of the comparison
+        claude = self.claude()
+        near_misses = ("api_duration_ms", "total_duration_ms_p50", "total_wait_ms")
+        claude["cost"] = dict(claude.get("cost") or {}, **{name: 100 for name in near_misses})
+        self.run_sh(claude)
+        for name in near_misses:
+            with self.subTest(name=name):
+                claude["cost"] = dict(claude["cost"], **{name: claude["cost"][name] + 1})
+                stub, log = self.python_that_logs()
+                self.run_sh(claude, CLAUDE_STATUSLINE_PYTHON=stub)
+                self.assertTrue(log.exists())
+                log.unlink()
+
+    def test_dropping_the_clocks_stays_quick_in_macos_bash_3_2(self):
+        # an extglob substitution here once took half a second a call in bash 3.2,
+        # and grew with the cube of the input; Claude Code calls it every few seconds
+        claude = self.claude()
+        claude["cost"] = dict(claude.get("cost") or {}, total_duration_ms=5_040_000, total_api_duration_ms=2_300)
+        claude["a_field_claude_code_adds_later"] = "x" * 6000  # inputs grow as Claude Code sends more
+        start = time.monotonic()
+        self.run_sh(claude, bash="/bin/bash" if Path("/bin/bash").exists() else "bash")
+        self.assertLess(time.monotonic() - start, 5)
 
     def test_a_terminal_that_isnt_utf8_still_draws(self):
         out = self.run_sh(self.claude(), PYTHONIOENCODING="latin-1")
@@ -261,7 +297,22 @@ class Installer(unittest.TestCase):
         self.assertTrue((dest / "statusline.sh").exists())
         self.assertTrue(os.access(dest / "project-info", os.X_OK))
         self.assertEqual(self.settings()["statusLine"],
-                         {"type": "command", "command": str(dest / "statusline.sh"), "refreshInterval": 1})
+                         {"type": "command", "command": str(dest / "statusline.sh"), "refreshInterval": 5})
+
+    def test_installing_again_keeps_the_interval_set_on_this_computer(self):
+        self.install()
+        path = self.home / ".claude" / "settings.json"
+        s = self.settings()
+        s["statusLine"].update(refreshInterval=10, padding=1)
+        path.write_text(json.dumps(s))
+        self.assertIn("already points at", self.install())
+        self.assertEqual((self.settings()["statusLine"]["refreshInterval"], self.settings()["statusLine"]["padding"]), (10, 1))
+
+    def test_replacing_someone_elses_status_line_uses_the_default_interval(self):
+        path = self.home / ".claude" / "settings.json"
+        path.write_text(json.dumps({"statusLine": {"type": "command", "command": "~/bin/my-line.sh", "refreshInterval": 30}}))
+        self.install()
+        self.assertEqual(self.settings()["statusLine"]["refreshInterval"], 5)
 
     def test_keeps_everything_else_in_settings_and_backs_it_up(self):
         path = self.home / ".claude" / "settings.json"

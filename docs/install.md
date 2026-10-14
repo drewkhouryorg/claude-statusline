@@ -34,13 +34,15 @@ Copy `statusline/` anywhere and add this to `~/.claude/settings.json`:
 "statusLine": {
   "type": "command",
   "command": "/path/to/statusline/statusline.sh",
-  "refreshInterval": 1
+  "refreshInterval": 5
 }
 ```
 
 Claude Code runs the command through a shell, so put quotes around a path with spaces in it.
 
-`refreshInterval: 1` lets it redraw every second. Most of those calls reprint the last drawing without starting Python. It draws afresh when Claude Code sends something new (after a reply, a `/model` switch or a resize), and otherwise every 10 seconds, so the clocks and meters stay current.
+Claude Code runs the status line itself whenever the conversation changes, such as after a reply or a `/model` switch. `refreshInterval: 5` adds a run every 5 seconds for what changes on its own: git, CPU and memory, and the ship column. Most runs reprint the last drawing without starting Python. It draws afresh when Claude Code sends something new or the width changes, and otherwise once the drawing is 10 seconds old.
+
+Running `install.sh` again keeps the `refreshInterval` you set, so each computer can have its own.
 
 ## Removing it
 

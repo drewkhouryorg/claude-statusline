@@ -18,9 +18,18 @@ re='"session_id" *: *"([A-Za-z0-9-]+)"'
 [[ $input =~ $re ]] && sid=${BASH_REMATCH[1]}
 out=$HERE/cache/render-$sid.txt
 
-# what the drawing depends on, minus the session clocks that tick every call
-shopt -s extglob
-key="${COLUMNS:-}|${CLAUDE_STATUSLINE_COLUMNS:-}|${input//\"total_?(api_)duration_ms\"*([[:space:]]):*([[:space:]])+([0-9.])/}"
+# what the drawing depends on, minus the session clocks that tick every call.
+# =~ uses the system regex and stays fast; an extglob ${input//...} took
+# half a second a call in macOS's bash 3.2, and longer as the input grew.
+clock='"total_(api_)?duration_ms"[[:space:]]*:[[:space:]]*[0-9.]+'
+rest=$input
+key="${COLUMNS:-}|${CLAUDE_STATUSLINE_COLUMNS:-}|"
+while [[ $rest =~ $clock ]]; do
+  before=${rest%%"${BASH_REMATCH[0]}"*}
+  key+=$before
+  rest=${rest:${#before}+${#BASH_REMATCH[0]}}
+done
+key+=$rest
 prev=
 [[ -f $out.key ]] && IFS= read -r -d '' prev < "$out.key"
 
