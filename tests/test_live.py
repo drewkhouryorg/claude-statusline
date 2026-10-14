@@ -80,6 +80,18 @@ class Live(unittest.TestCase):
         self.assertIn("main  ✓✓✗", out)
         self.assertIn("prod  ✓ v9.1", out)
 
+    def test_json_gives_each_part_as_data_beside_the_drawing(self):
+        # what the desktop app's pane reads: the same repo, as data
+        out = subprocess.run([sys.executable, str(self.install / "statusline.py"), "--json"],
+                             input=json.dumps(self.claude()), capture_output=True, text=True, timeout=30,
+                             env={**os.environ, "HOME": str(self.tmp), "COLUMNS": "200",
+                                  "CLAUDE_STATUSLINE_DATA": str(self.data)})
+        self.assertEqual(out.returncode, 0, out.stderr)
+        got = json.loads(out.stdout)
+        self.assertEqual((got["repo"]["name"], got["repo"]["branch"]), ("shop", "feat/cart"))
+        self.assertEqual([(m["kind"], m["count"]) for m in got["repo"]["marks"]], [("modified", 1), ("untracked", 1)])
+        self.assertEqual(visible(got["ansi"]), self.run_sh(self.claude()))
+
     def test_writes_this_sessions_usage_file_and_week_log(self):
         claude = self.claude()
         self.run_sh(claude)

@@ -13,6 +13,7 @@ Gathering (stdin JSON, git, project-info.json, battery, cpu, memory) is kept
 apart from rendering so the renderer can be driven from fixtures:
 
   statusline.py                 live: reads Claude Code's JSON on stdin
+  statusline.py --json          live, but each part as data (see `view`)
   statusline.py --scenario F    renders one scenario file (see scenarios/)
 
 The status line never runs repo code. Project data comes only from
@@ -415,6 +416,16 @@ def clean_claude(c):
 # ---- columns -----------------------------------------------------------------
 
 
+MARKS = (("conflicts", "✖", BRICK), ("staged", "●", SAGE), ("modified", "✚", OLIVE),
+         ("untracked", "?", DIM), ("ahead", "↑", CYAN), ("behind", "↓", TERRA))
+
+
+def commit_age_style(g, age):
+    """Uncommitted work getting old is worth a nudge; a clean tree is not."""
+    dirty = any(g.get(k) for k in ("conflicts", "staged", "modified", "untracked"))
+    return TERRA if dirty and age > 3 * 3600 else OLIVE if dirty and age > 3600 else DIM
+
+
 def repo_column(m):
     c, g = m["claude"], m["git"]
     ws = c.get("workspace") or {}
@@ -435,19 +446,14 @@ def repo_column(m):
         second += [seg(" "), seg(g["state"], OLIVE)]
 
     marks = []
-    for key, glyph, style in (("conflicts", "✖", BRICK), ("staged", "●", SAGE),
-                              ("modified", "✚", OLIVE), ("untracked", "?", DIM),
-                              ("ahead", "↑", CYAN), ("behind", "↓", TERRA)):
+    for key, glyph, style in MARKS:
         if g.get(key):
             marks.append(seg(f"{glyph}{g[key]}", style))
             marks.append(seg(" "))
-    dirty = any(g.get(k) for k in ("conflicts", "staged", "modified", "untracked"))
     third = marks[:-1] if marks else [seg("git slow" if g.get("status_unknown") else "clean", DIM)]
     if g.get("last_commit"):
         age = m["now"] - g["last_commit"]
-        # uncommitted work getting old is worth a nudge; a clean tree is not
-        style = TERRA if dirty and age > 3 * 3600 else OLIVE if dirty and age > 3600 else DIM
-        third = third + [seg(" · ", DIM), seg(fmt_age(age), style)]
+        third = third + [seg(" · ", DIM), seg(fmt_age(age), commit_age_style(g, age))]
 
     rows = [first, second, third]
     pr = pr_line(c.get("pr"), m)
@@ -461,22 +467,28 @@ REVIEW = {"approved": ("lgtm", SAGE), "changes_requested": ("⟲ changes", BRICK
           "pending": ("in review", DIM), "draft": ("draft", DIM)}
 
 
+def branch_checks(m):
+    """(words, colour) for this branch's checks from project-info, or None:
+    `✗ 2/9` when any failed, `⟳ 5/9` while some run, `✓` when all passed."""
+    branch = (m["git"] or {}).get("branch")
+    info = ((m["project"] or {}).get("branches") or {}).get(branch) or {}
+    checks = info.get("checks") or {}
+    p, f, w = (int(checks.get(k) or 0) for k in ("pass", "fail", "pending"))
+    total = p + f + w
+    if f:
+        return f"✗ {f}/{total}", BRICK  # the red ✗ says fail
+    if w:
+        return f"⟳ {p}/{total}", AMBER
+    return ("✓", SAGE) if total else None
+
+
 def pr_line(pr, m):
     if not pr or not pr.get("number"):
         return None
     out = [seg(f"#{pr['number']}", CYAN, pr.get("url"))]
-    branch = (m["git"] or {}).get("branch")
-    info = ((m["project"] or {}).get("branches") or {}).get(branch) or {}
-    checks = info.get("checks") or {}
+    checks = branch_checks(m)
     if checks:
-        p, f, w = (int(checks.get(k) or 0) for k in ("pass", "fail", "pending"))
-        total = p + f + w
-        if f:
-            out += [seg(" "), seg(f"✗ {f}/{total}", BRICK)]  # the red ✗ says fail
-        elif w:
-            out += [seg(" "), seg(f"⟳ {p}/{total}", AMBER)]
-        elif total:
-            out += [seg(" "), seg("✓", SAGE)]
+        out += [seg(" "), seg(*checks)]
     review = REVIEW.get(pr.get("review_state"))
     if review:
         out += [seg(" "), seg(*review)]
@@ -814,21 +826,7 @@ def week_column(m):
     # Claude Code can send the old window for a moment after it resets
     if not week or not week.get("resets_at") or not week["to_reset"]:
         return []
-    used, resets_at = week["used"], week["resets_at"]
-    # before the log's first reading in this window there is nothing to draw
-    days, at, spent, since = week_days(m)
-    left = max(0, 100 - used)
-    ahead = sum(b - a for a, b, _ in days if a > now)
-
-    bars = []  # (percent, or None before the log; colour)
-    for a, b, style in days:
-        if a > now:  # all that's unspent, over the days to come by their length
-            bars.append((left * (b - a) / ahead, GREY))
-        elif b <= since:
-            bars.append((None, DIM))
-        else:
-            bars.append((spent(a, b), style))
-
+    days, bars, numbers = week_bars(m)
     band = max(CHART_FLOOR, *(v for v, _ in bars if v is not None)) / CHART_ROWS
     rows = []
     for row in reversed(range(CHART_ROWS)):
@@ -839,25 +837,56 @@ def week_column(m):
             else:
                 line.append(seg(" " + BLOCKS[max(0, min(8, round((v - row * band) / band * 8)))] * 2, style))
         rows.append(line)
-    # past days are whole readings apart; the days to come round so they add up to what's left
-    shares = iter(whole([v for v, style in bars if style == GREY], left))
-    rows.append([seg(" " * DAY_WIDTH if v is None else
-                     f"{next(shares) if style == GREY else round(v):>{DAY_WIDTH}}", DIM if style == GREY else style)
-                 for v, style in bars])
+    rows.append([seg(" " * DAY_WIDTH if n is None else f"{n:>{DAY_WIDTH}}", DIM if style == GREY else style)
+                 for n, (_, style) in zip(numbers, bars)])
     rows.append([seg(" " + day_name(a, b)[:2], style) for a, b, style in days])
 
-    words, style = forecast(week, now)
-    side = [[seg(f"{round(used)}% now")],
-            [seg(words, style)] if words else [],
-            # as if today stops here, like the grey bars. A rate only reads right
-            # over whole days, so one day left, or none after today, is named
-            [] if used >= 100 else
-            [seg(f"{left / (ahead / 86400):.0f}%/day to use it all", DIM)] if ahead > 86400 else
-            [seg(f"{round(left)}% left for {day_name(*days[-1][:2])}", DIM)]
-            if ahead else [seg(f"{round(left)}% left today", DIM)]]
-    side = [t for t in side if t]  # no gap where a line has nothing to say
+    side = [[seg(words, style)] for words, style in week_words(m, days)]
     side += [[]] * (3 - len(side)) + [runway_line(m, show_week=False)]
     return [r + ([seg("  ")] + t if t else []) for r, t in zip(rows, side)]
+
+
+def week_bars(m):
+    """The chart's days, its bars and the number under each: (days from
+    week_days, [(percent or None before the log, colour)], [whole number or
+    None]). Past days show what they spent; days to come split all that's
+    unspent by their length, and their numbers round so the week adds to 100."""
+    week, now = m["week"], m["now"]
+    # before the log's first reading in this window there is nothing to draw
+    days, at, spent, since = week_days(m)
+    left = max(0, 100 - week["used"])
+    ahead = sum(b - a for a, b, _ in days if a > now)
+    bars = []
+    for a, b, style in days:
+        if a > now:  # all that's unspent, over the days to come by their length
+            bars.append((left * (b - a) / ahead, GREY))
+        elif b <= since:
+            bars.append((None, DIM))
+        else:
+            bars.append((spent(a, b), style))
+    # past days are whole readings apart; the days to come round so they add up to what's left
+    shares = iter(whole([v for v, style in bars if style == GREY], left))
+    numbers = [None if v is None else next(shares) if style == GREY else round(v) for v, style in bars]
+    return days, bars, numbers
+
+
+def week_words(m, days):
+    """The lines beside the chart, as (words, colour): used now, where the
+    week ends up, and what each day to come gets. A line with nothing to
+    say is left out, so there's no gap."""
+    week, now = m["week"], m["now"]
+    used = week["used"]
+    left = max(0, 100 - used)
+    ahead = sum(b - a for a, b, _ in days if a > now)
+    words, style = forecast(week, now)
+    lines = [(f"{round(used)}% now", None), (words, style) if words else None]
+    # as if today stops here, like the grey bars. A rate only reads right
+    # over whole days, so one day left, or none after today, is named
+    if used < 100:
+        lines.append((f"{left / (ahead / 86400):.0f}%/day to use it all", DIM) if ahead > 86400 else
+                     (f"{round(left)}% left for {day_name(*days[-1][:2])}", DIM) if ahead else
+                     (f"{round(left)}% left today", DIM))
+    return [line for line in lines if line]
 
 
 # ---- cpu and mem -------------------------------------------------------------
@@ -1102,6 +1131,203 @@ def render_lines(inp, cols=None):
 
 def render(inp, cols=None, color=True):
     return "\n".join(ansi(l, color).rstrip() for l in render_lines(inp, cols))
+
+
+# ---- view: the same model as plain data --------------------------------------
+# For a surface that draws each part itself (the Claude desktop app's pane):
+# the numbers, and every judgement the terminal drawing makes (a tank's pace
+# colour, a day's tone, the forecast), so the two can't disagree. Colours are
+# names; the surface picks the paint.
+
+TONES = {SAGE: "sage", OLIVE: "olive", TERRA: "terra", BRICK: "brick", AMBER: "amber",
+         CYAN: "cyan", GREY: "grey", PURPLE: "purple", DIM: "dim"}
+VIEW_SCHEMA = 1
+
+
+def tone(style):
+    return TONES.get(style)
+
+
+def view(inp, cols=None):
+    m = build_model(inp)
+    return {
+        "schema": VIEW_SCHEMA,
+        "now": m["now"],
+        "tanks": view_tanks(m),
+        "repo": view_repo(m),
+        "ship": view_ship(m),
+        "session": view_session(m),
+        "five": view_five(m),
+        "week": view_week(m),
+        "system": view_system(m),
+        "alerts": [{"text": plain_text(line), "tone": next((tone(s) for _, s, _ in line if s), None)}
+                   for line in notice_rows(m) + [refresh_alert(m)] + [cache_alert(m)] if line],
+        "ansi": render(inp, cols),
+        "blocks": view_blocks(m),
+    }
+
+
+def view_blocks(m):
+    """Each part as the terminal draws it, apart: for a tall, narrow pane that
+    stacks them rather than setting them side by side. A part with nothing
+    to show is left out; the week takes the 5h line, so the session doesn't."""
+    week = week_column(m)
+    parts = [("tanks", tanks(m)), ("repo", repo_column(m)), ("ship", ship_column(m)),
+             ("session", session_column(m, week=not week, five=not week)), ("week", week),
+             ("system", system_column(m)), ("alerts", [alerts_line(m, machine=True)])]
+    # a blank row only holds a column's place beside the others; stacked, it's a gap
+    shown = lambda lines: [ansi(l).rstrip() for l in lines if plain_text(l).strip()]
+    return [{"name": name, "lines": shown(lines)} for name, lines in parts if shown(lines)]
+
+
+def plain_text(segs):
+    return "".join(t for t, _, _ in segs)
+
+
+def cache_alert(m):
+    cache = m["claude"].get("prompt_cache")
+    return [seg("cache cold", OLIVE)] if cache and cache.get("warm") is False else []
+
+
+def view_tanks(m):
+    ctx = (m["claude"].get("context_window") or {}).get("context_window_size")
+    out = []
+    for label, tank, window in (("ctx", m["ctx_tank"], None), ("5h", m["five_tank"], m["five"]),
+                                ("wk", m["week_tank"], m["week"])):
+        pct, tier = tank[0], tank[1]
+        t = {"label": label, "pct": pct, "tone": None if pct is None else tone(TIERS[tier]),
+             "elapsed": tank[2] if len(tank) > 2 else None}
+        if window:
+            t.update(to_reset=window["to_reset"], to_full=window["to_full"], projected=window["projected"])
+        elif label == "ctx":
+            t["size"] = ctx
+        out.append(t)
+    return out
+
+
+def view_repo(m):
+    c, g = m["claude"], m["git"]
+    ws = c.get("workspace") or {}
+    cwd = ws.get("current_dir") or c.get("cwd") or os.getcwd()
+    if not g:
+        return {"name": Path(cwd).name or cwd, "git": False}
+    age = m["now"] - g["last_commit"] if g.get("last_commit") else None
+    pr = c.get("pr") or {}
+    checks = branch_checks(m)
+    review = REVIEW.get(pr.get("review_state"))
+    return {
+        "git": True,
+        "name": (ws.get("repo") or {}).get("name") or g.get("repo") or Path(cwd).name,
+        "worktree": ws.get("git_worktree"),
+        "branch": g.get("branch") or g.get("rebasing"),
+        "sha": (g.get("sha") or "")[:7] or None,
+        "state": g.get("state"),
+        "marks": [{"kind": key, "glyph": glyph, "count": g[key], "tone": tone(style)}
+                  for key, glyph, style in MARKS if g.get(key)],
+        "status_unknown": bool(g.get("status_unknown")),
+        "commit_age": age,
+        "commit_tone": None if age is None else tone(commit_age_style(g, age)),
+        "pr": None if not pr.get("number") else {
+            "number": pr["number"], "url": pr.get("url"),
+            "checks": None if not checks else {"text": checks[0], "tone": tone(checks[1])},
+            "review": None if not review else {"text": review[0], "tone": tone(review[1])},
+        },
+    }
+
+
+def view_ship(m):
+    p, now = m["project"], m["now"]
+    if not p:
+        return None
+    old = lambda s: now - s["updated_at"] if stale(s, p, now) else None
+    deploys = []
+    for env, d in (p.get("deploy") or {}).items():
+        behind = d.get("behind")
+        deploys.append({"env": sanitize(env, 12), "url": d.get("url"), "status": d.get("status") or "ok",
+                        "version": sanitize(d.get("version", "?"), 20),
+                        "age": now - d["deployed_at"] if d.get("deployed_at") else None,
+                        "behind": behind or 0, "behind_tone": tone(OLIVE if (behind or 0) < 10 else TERRA),
+                        "stale_age": old(d)})
+    prs = p.get("prs")
+    items = [i for i in (prs or {}).get("items") or [] if isinstance(i, dict)]
+    return {
+        "ci": [{"name": sanitize(name, 12), "url": ci.get("url"), "runs": (ci.get("runs") or [])[-5:],
+                "stale_age": old(ci)} for name, ci in list((p.get("ci") or {}).items())[:2]],
+        "deploys": deploys,
+        "prs": None if not prs else {
+            "url": prs.get("url"), "open": prs.get("open", len(items)), "needs_review": prs.get("needs_review") or 0,
+            "items": [{"number": sanitize(i.get("number", "?"), 6), "url": i.get("url"),
+                       "checks": i.get("checks") if i.get("checks") in CHECKS else "none",
+                       "draft": bool(i.get("draft"))} for i in items],
+            "stale_age": old(prs)},
+    }
+
+
+def view_session(m):
+    c = m["claude"]
+    cost = c.get("cost") or {}
+    dur = cost.get("total_duration_ms")
+    return {
+        "model": (c.get("model") or {}).get("display_name"),
+        "effort": (c.get("effort") or {}).get("level"),
+        "fast": bool(c.get("fast_mode")),
+        "duration": dur / 1000 if dur else None,
+        "name": sanitize(c["session_name"], 60) if c.get("session_name") else None,
+        "id": (c.get("session_id") or "")[:8] or None,
+        "added": cost.get("total_lines_added"),
+        "removed": cost.get("total_lines_removed"),
+    }
+
+
+def view_five(m):
+    """The 5h window's state as runway_line words it: full, out before the reset, or fine."""
+    five = m["five"]
+    if not five:
+        return None
+    out = five["to_full"] is not None and five["to_reset"] is not None and five["to_full"] < five["to_reset"]
+    state = "full" if five["used"] >= 100 else "out" if out else "ok"
+    return {"used": five["used"], "state": state, "tone": tone(TIERS[five["tier"]]),
+            "to_reset": five["to_reset"], "to_full": five["to_full"]}
+
+
+def view_week(m):
+    week, now = m["week"], m["now"]
+    if not week:
+        return None
+    out = {"used": week["used"], "tone": tone(TIERS[week["tier"]]), "to_reset": week["to_reset"],
+           "projected": week["projected"], "days": [], "lines": []}
+    # Claude Code can send the old window for a moment after it resets
+    if not week.get("resets_at") or not week["to_reset"]:
+        return out
+    days, bars, numbers = week_bars(m)
+    out["days"] = [{"name": day_name(a, b), "pct": v, "number": n, "tone": tone(style),
+                    "when": "later" if a > now else "now" if b > now else "past"}
+                   for (a, b, _), (v, style), n in zip(days, bars, numbers)]
+    out["lines"] = [{"text": words, "tone": tone(style)} for words, style in week_words(m, days)]
+    return out
+
+
+def view_system(m):
+    s = m["system"]
+    cpu, mem, batt = s.get("cpu"), s.get("memory"), s.get("battery")
+    if not cpu and not mem:
+        return None
+    usage, waiting, cpu_style = cpu_state(cpu)
+    mem = mem or {}
+    word, mem_style = pressure(mem)
+    swap = mem.get("swap_trend")
+    low = battery_segs(batt)
+    return {
+        "cpu": {"usage": usage, "tone": tone(cpu_style), "waiting": waiting,
+                "top": (cpu or {}).get("top") if waiting >= 1 else None},
+        "memory": {"used_pct": mem.get("used_pct"), "pressure": word, "tone": tone(mem_style),
+                   "comp_mb": mem.get("comp_mb"), "comp_trend": mem.get("comp_trend"),
+                   # swap that just sits there is left over from earlier pressure
+                   "swap_mb": mem.get("swap_mb") if swap in ("up", "down") else None,
+                   "swap_trend": swap if swap in ("up", "down") else None,
+                   "top": mem.get("top") if word != "normal" else None},
+        "battery": None if not low else {"pct": batt["pct"], "tone": tone(low[0][1])},
+    }
 
 
 # ---- gathering (live mode only) ----------------------------------------------
@@ -1718,7 +1944,10 @@ def main(argv):
     raw = sys.stdin.read()
     c = clean_claude(json.loads(raw) if raw.strip() else {})
     cols = env_int("CLAUDE_STATUSLINE_COLUMNS", 0, 40, 1000) or env_int("COLUMNS", 200, 1, 10000)
-    print(render(gather(c), cols - 2))
+    if argv[:1] == ["--json"]:  # each part as data, for a surface that draws it itself
+        print(json.dumps(view(gather(c), cols - 2), ensure_ascii=False))
+    else:
+        print(render(gather(c), cols - 2))
     (HERE / "error.log").unlink(missing_ok=True)  # drawn fine: an old error no longer applies
 
 
