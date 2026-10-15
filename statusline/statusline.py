@@ -2027,6 +2027,20 @@ def version_label(script=None, record=None):
 
 
 # ---- entry -----------------------------------------------------------------
+def room(columns, settings=None):
+    """How much of the terminal's width Claude Code shows of each line: it
+    indents the status line by 2 columns plus the statusLine "padding" set
+    in settings.json, keeps as many clear at the right, and cuts the rest."""
+    padding = 0
+    try:
+        line = json.loads((settings or CONFIG_DIR / "settings.json").read_text()).get("statusLine")
+        if isinstance(line, dict) and isinstance(line.get("padding"), int) and 0 <= line["padding"] <= 100:
+            padding = line["padding"]
+    except (OSError, ValueError, AttributeError):
+        pass
+    return max(1, columns - 2 * (2 + padding))
+
+
 
 
 def main(argv):
@@ -2044,9 +2058,9 @@ def main(argv):
     if argv[:1] == ["--json"]:  # each part as data, for a surface that draws it itself
         # its input isn't Claude Code's, so it says nothing about the error the
         # status line logged: leave that log for the person reading it
-        print(json.dumps(view(gather(c), cols - 2), ensure_ascii=False))
+        print(json.dumps(view(gather(c), room(cols)), ensure_ascii=False))
         return
-    print(render(gather(c), cols - 2))
+    print(render(gather(c), room(cols)))
     (HERE / "error.log").unlink(missing_ok=True)  # drawn fine: an old error no longer applies
 
 

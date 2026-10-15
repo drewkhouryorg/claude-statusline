@@ -262,6 +262,19 @@ class Live(unittest.TestCase):
         self.assertLessEqual(widest(COLUMNS="100"), 98)
         self.assertLessEqual(widest(COLUMNS="200", CLAUDE_STATUSLINE_COLUMNS="82"), 80)
 
+    def test_the_right_edge_is_where_claude_code_cuts_the_line(self):
+        # Claude Code indents the line 2 + padding columns and keeps as many
+        # clear at the right: measured in a 160-column tmux, padding 0 and 3
+        (self.install / "installed.json").write_text(json.dumps(
+            {"by": "claude-statusline", "version": "1.2.3", "commit": "041e552", "release": False}))
+        def edge(**env):
+            out = self.run_sh(self.claude(session_id=f"e-{len(env)}-{'-'.join(env.values())}"), **env)
+            return next(len(line) for line in out.split("\n") if line.endswith("v1.2.3+041e552"))
+        self.assertEqual(edge(COLUMNS="200"), 196)
+        (self.tmp / ".claude").mkdir(exist_ok=True)
+        (self.tmp / ".claude" / "settings.json").write_text(json.dumps({"statusLine": {"padding": 3}}))
+        self.assertEqual(edge(COLUMNS="200", X="pad3"), 190)
+
     def test_outside_git_it_says_so(self):
         plain_dir = self.tmp / "scratch"
         plain_dir.mkdir()
