@@ -2,5 +2,13 @@
   "name": "statusline-pane",
   "version": "0.1.0",
   "description": "claude-statusline drawn in a side pane, sized to the pane",
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "open": {
+      "type": "boolean",
+      "title": "Open the status pane by itself",
+      "description": "Open the side pane in every new session. When off, type /statusline-pane to open it.",
+      "default": false
+    }
+  }
 }

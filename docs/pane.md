@@ -1,28 +1,18 @@
 # The side pane
 
-The side pane draws the status line's parts in a pane of their own, with more room than one line under the prompt. It's a Claude Code mod in [`pane/`](../pane), and it's off until you turn it on.
+The side pane draws the status line's parts in a pane of their own, with more room than one line under the prompt. It's a Claude Code mod in [`pane/`](../pane). The installer sets it up, and it stays closed until you open it.
 
 Where it appears:
 
-- **In a fullscreen terminal** (Claude Code's default), beside the transcript. It opens by itself once the terminal is 144 columns wide. From 34 columns across, it spells each part out with bigger tanks, the week chart across the pane, and labels that say what each number is. Narrower than that, it stacks the status line's own parts.
-- **In a terminal that isn't fullscreen**, such as tmux, it only opens when you type `/statusline-pane`, and then shows the status line itself above the prompt.
-- **In the Claude desktop app's Code tab, and the mobile app**, as a card for each part, with the tanks and the week drawn as charts. Type `/statusline-pane` to open it.
+- **In a fullscreen terminal** (Claude Code's default), beside the transcript, once the terminal is 144 columns wide. From 34 columns across, it spells each part out with bigger tanks, the week chart across the pane, and labels that say what each number is. Narrower than that, it stacks the status line's own parts.
+- **In a terminal that isn't fullscreen**, such as tmux, above the prompt, showing the status line itself.
+- **In the Claude desktop app's Code tab, and the mobile app**, as a card for each part, with the tanks and the week drawn as charts.
 
-Close it with its close mark, as any pane.
+## Opening it
 
-## Turning it on
+`./install.sh` puts the pane in `~/.claude/claude-statusline/pane`, beside the status line it runs, and adds that folder to `CLAUDE_CODE_PLUGIN_DIRS` in `~/.claude/settings.json`. Every Claude Code session you start after that has it, in the terminal and in the desktop app's Code tab.
 
-It needs the status line installed first, with `./install.sh`. That puts the pane in `~/.claude/claude-statusline/pane`, beside the status line it runs. Then add that folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`:
-
-```json
-{
-  "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/claude-statusline/pane"
-  }
-}
-```
-
-If the variable already lists other folders, add this one with a `:` between them. Every Claude Code session you start after that loads it: the terminal, and the desktop app's Code tab. If you've set `CLAUDE_CONFIG_DIR`, the pane is under that folder instead of `~/.claude`.
+Type `/statusline-pane` to open it, and close it with its close mark, as any pane. To open it in every new session, turn on "Open the status pane by itself" in `/config`.
 
 Mods are an early-access part of Claude Code, so the pane depends on the version you run. It's tested with 2.1.295, the version the desktop app ships with today, and with 2.1.299.
 
@@ -44,7 +34,7 @@ Before a session's first reply, the context tank shows Claude Code's own estimat
 
 To upgrade, `git pull` and run `./install.sh` again: the pane and the status line it runs come from the same install, so they stay the same version. A pane from an older install, before the pane had its own layouts, shows the status line's strip and says to run `./install.sh` again.
 
-To turn it off, take the folder out of `CLAUDE_CODE_PLUGIN_DIRS`. `./install.sh --uninstall` removes the pane's files, but leaves that setting for you to remove.
+`./install.sh --uninstall` removes the pane with the status line. To keep the status line and stop loading the pane, take its folder out of `CLAUDE_CODE_PLUGIN_DIRS`; running `./install.sh` again puts it back.
 
 ## Working on it
 

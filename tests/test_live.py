@@ -336,7 +336,40 @@ class Installer(unittest.TestCase):
         self.assertTrue((pane / ".claude-plugin" / "plugin.json").exists())
         self.assertTrue((pane / "hooks" / "register.tsx").exists())
         self.assertFalse((pane / "tests").exists())
-        self.assertFalse((self.home / ".claude" / "settings.json").read_text().count("CLAUDE_CODE_PLUGIN_DIRS"))
+
+    def test_the_side_pane_is_added_beside_the_plugin_folders_you_had(self):
+        path = self.home / ".claude" / "settings.json"
+        path.write_text(json.dumps({"env": {"A": "1", "CLAUDE_CODE_PLUGIN_DIRS": "~/mods/other"}}))
+        self.install()
+        self.install()  # once, however often it runs
+        self.assertEqual(self.settings()["env"],
+                         {"A": "1", "CLAUDE_CODE_PLUGIN_DIRS": "~/mods/other:~/.claude/claude-statusline/pane"})
+
+    def test_uninstall_takes_the_side_pane_out_and_leaves_the_rest(self):
+        path = self.home / ".claude" / "settings.json"
+        path.write_text(json.dumps({"env": {"CLAUDE_CODE_PLUGIN_DIRS": "~/mods/other"}}))
+        self.install()
+        self.install("--uninstall")
+        self.assertEqual(self.settings()["env"], {"CLAUDE_CODE_PLUGIN_DIRS": "~/mods/other"})
+
+    def test_uninstall_leaves_no_empty_env_behind(self):
+        self.install()
+        self.install("--uninstall")
+        self.assertEqual(self.settings(), {})
+
+    def test_a_backup_never_overwrites_an_earlier_one(self):
+        # backups are named by the second: plant one for each second this
+        # test could run in, as two runs in one second would leave
+        path = self.home / ".claude" / "settings.json"
+        path.write_text(json.dumps({"model": "opus"}))
+        now = time.time()
+        planted = [path.with_name("settings.json.bak-" + time.strftime("%Y%m%d-%H%M%S", time.localtime(now + s)))
+                   for s in range(-1, 30)]
+        for p in planted:
+            p.write_text("earlier")
+        self.install()
+        self.assertEqual([p.read_text() for p in planted], ["earlier"] * len(planted))
+        self.assertEqual(len(list(path.parent.glob("settings.json.bak-*"))), len(planted) + 1)
 
     def test_link_installs_link_the_side_pane_to_the_checkout(self):
         self.install("--link")
@@ -352,7 +385,7 @@ class Installer(unittest.TestCase):
         s = self.settings()
         s["statusLine"].update(refreshInterval=10, padding=1)
         path.write_text(json.dumps(s))
-        self.assertIn("already points at", self.install())
+        self.assertIn("already set up", self.install())
         self.assertEqual((self.settings()["statusLine"]["refreshInterval"], self.settings()["statusLine"]["padding"]), (10, 1))
 
     def test_replacing_someone_elses_status_line_uses_the_default_interval(self):
@@ -367,7 +400,7 @@ class Installer(unittest.TestCase):
                                     "env": {"A": "1"}}, indent=2))
         self.install()
         s = self.settings()
-        self.assertEqual((s["model"], s["env"]), ("opus", {"A": "1"}))
+        self.assertEqual((s["model"], s["env"]["A"]), ("opus", "1"))
         self.assertTrue(s["statusLine"]["command"].endswith("statusline.sh"))
         backups = list((self.home / ".claude").glob("settings.json.bak-*"))
         self.assertEqual(len(backups), 1)
@@ -381,7 +414,7 @@ class Installer(unittest.TestCase):
 
     def test_dry_run_writes_nothing(self):
         out = self.install("--dry-run")
-        self.assertIn("would", out)
+        self.assertIn("Would", out)
         self.assertFalse((self.home / ".claude" / "settings.json").exists())
         self.assertFalse((self.home / ".claude" / "claude-statusline").exists())
 

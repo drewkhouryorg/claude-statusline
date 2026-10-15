@@ -197,10 +197,10 @@ test('before the install has --json, the apps draw the text', async ($, on) => {
 const MINUTE = 60_000
 const placed: UiPane = { id: 'statusline', title: 'Status', isShown: true, isFocused: false, isPlaced: true }
 
-/** A session that counts the pane's runs and closes; `panes` is what $.ui.panes answers on each tick. */
+/** A session that counts the pane's runs, opens and closes; `panes` is what $.ui.panes answers on each tick. */
 function counted(on: On, panes: UiPane[]) {
   const clock = mock.clock(on, { now: BAD_DAY.now * 1000 })
-  const seen = { runs: 0, closed: 0 }
+  const seen = { runs: 0, opened: 0, closed: 0 }
   on('session.id', () => ({ value: 'a1b2c3d4-5e6f-4a1b-9c8d-0123456789ab' }))
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   on('session.cwd', () => ({ value: '/Users/dev/code/acme-shop' }))
@@ -210,7 +210,10 @@ function counted(on: On, panes: UiPane[]) {
   // beneath the mod: the session starting, and the engine taking its command
   on('session.start', (_$, e) => ({ cwd: e.cwd }))
   on('command.register', () => ({ value: { command: 'statusline-pane' } }))
-  on('ui.open', () => ({ value: panes.some(p => p.isPlaced) ? { isPlaced: true } : { isPlaced: false, reason: 'no-surface' } }))
+  on('ui.open', () => {
+    seen.opened++
+    return { value: panes.some(p => p.isPlaced) ? { isPlaced: true } : { isPlaced: false, reason: 'no-surface' } }
+  })
   on('ui.panes', () => ({ value: panes }))
   on('ui.close', () => {
     seen.closed++
@@ -238,7 +241,31 @@ test('a -p run, with nothing to draw on, never runs the status line', async ($, 
   expect(seen.runs).toBe(0)
 })
 
-test('a pane that was never placed, or was closed, runs nothing', async ($, on) => {
+test('the pane is off by default: a new session opens nothing and runs nothing', async ($, on) => {
+  const { clock, seen } = counted(on, [])
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+  await clock.advance(MINUTE)
+
+  expect(seen.opened).toBe(0)
+  expect(seen.runs).toBe(0)
+})
+
+test('turned on in /config, a new session opens the pane', { options: { open: true } }, async ($, on) => {
+  const { seen } = counted(on, [])
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+
+  expect(seen.opened).toBe(1)
+})
+
+test('/statusline-pane opens the pane while it is off', async ($, on) => {
+  const { seen } = counted(on, [])
+  await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
+  await $.command.run(TYPED)
+
+  expect(seen.opened).toBe(1)
+})
+
+test('a pane that was never placed, or was closed, runs nothing', { options: { open: true } }, async ($, on) => {
   // a terminal under 144 columns: the unasked pane waits undrawn
   const { clock, seen } = counted(on, [{ ...placed, isPlaced: false, isShown: false }])
   await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })
@@ -270,7 +297,7 @@ test('one session on two surfaces at different widths still runs about once a ti
   await phone.unmount()
 })
 
-test('unasked above the prompt of a terminal that is not fullscreen, the pane gives way', async ($, on) => {
+test('unasked above the prompt of a terminal that is not fullscreen, the pane gives way', { options: { open: true } }, async ($, on) => {
   // tmux, or fullscreen off: there it would be the status line a second time
   const { seen } = counted(on, [placed])
   await $.session.start({ cwd: CWD, surface: 'terminal', isInteractive: true })

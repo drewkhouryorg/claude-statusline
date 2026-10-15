@@ -180,15 +180,16 @@ async function soon($: EngineInterface) {
   })
 }
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'statusline-pane',
       description: 'Show claude-statusline in a side pane',
     })
-    // the first run comes from the pane's first drawing, so a pane that is
+    // off unless turned on in /config; /statusline-pane opens it any time.
+    // The first run comes from the pane's first drawing, so a pane that is
     // never placed (a -p run, a narrow terminal) never runs anything
-    void $.ui.open({ id: PANE, title: TITLE })
+    if (options.open === true) void $.ui.open({ id: PANE, title: TITLE })
     $.clock.every(EVERY_MS, () => void tick($).catch(() => undefined))
 
     return next(e)

@@ -20,9 +20,14 @@ cd claude-statusline
 ./install.sh            # or ./install.sh --dry-run to see what it would change
 ```
 
-Start a new Claude Code session to see it. The installer copies three files and the [side pane](docs/pane.md), which stays off until you turn it on, to `~/.claude/claude-statusline/`, and sets `statusLine` in `~/.claude/settings.json`, after backing that file up. Your other settings are kept. If you already had a `statusLine`, it's replaced, and `./install.sh --uninstall` puts it back. If you've set `CLAUDE_CONFIG_DIR`, it installs there instead of `~/.claude`.
+Start a new Claude Code session to see it. The installer:
 
-If it doesn't appear, run `/status` in Claude Code. Your organization's managed settings can set `statusLine` for you, and nothing in your own settings overrides them. `"disableAllHooks": true` also turns off every status line.
+- copies the status line and the [side pane](docs/pane.md) to `~/.claude/claude-statusline/`, or under `CLAUDE_CONFIG_DIR` if you've set it
+- backs up `~/.claude/settings.json`, sets `statusLine` in it, and adds the side pane to `CLAUDE_CODE_PLUGIN_DIRS`. Your other settings are kept. A status line you already had is saved, and `./install.sh --uninstall` puts it back.
+
+The side pane stays closed until you type `/statusline-pane`. To open it in every session, turn on "Open the status pane by itself" in `/config`.
+
+If the status line doesn't appear, run `/status` in Claude Code. Your organization's managed settings can set `statusLine` for you, and nothing in your own settings overrides them. `"disableAllHooks": true` also turns off every status line.
 
 To upgrade, `git pull` and run `./install.sh` again. [Installing](docs/install.md) covers `--link`, setting it up by hand, and removing it.
 
@@ -86,7 +91,7 @@ With `CLAUDE_CONFIG_DIR` set, all of these are under that folder instead of `~/.
 
 Only `git rev-parse`, `git status` and `git log`, with the two settings turned off that a repo's own config can use to make those start a program: a file monitor, and signature checking. Like any shell prompt that shows git status, `git status` still applies a repo's content filters if its config defines them, so treat a repo you don't trust as you would in your shell.
 
-The [side pane](docs/pane.md), once you turn it on, runs the same reads in each session that shows it, the desktop app's included.
+The [side pane](docs/pane.md) runs the same reads in each session where it's open, the desktop app's included.
 
 ## Troubleshooting
 
