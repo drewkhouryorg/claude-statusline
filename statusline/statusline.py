@@ -2000,15 +2000,16 @@ def checkout_head(root):
 def version_label(script=None, record=None):
     """`v0.1.0` for a release, or with the commit for anything else:
     `v0.1.0+041e552` run from a checkout (linked, or in place), and from a
-    copy installed out of one, `*` after it when it had uncommitted changes.
-    None for an install from before versions."""
+    copy installed out of one, `*` after it when it had uncommitted changes,
+    `+?` when no one can tell which commit. None for an install from before
+    versions."""
     root = Path(os.path.realpath(script or __file__)).parents[1]
     if (root / "VERSION").is_file() and (root / "install.sh").is_file():
         version = (read_text(root / "VERSION") or "").strip()
         if not re.fullmatch(r"\d+\.\d+\.\d+", version):
             return None
         head = checkout_head(root)
-        return f"v{version}+{head}" if head else f"v{version}"
+        return f"v{version}+{head or '?'}"
     try:
         r = json.loads((record or INSTALLED).read_text())
     except (OSError, ValueError):
@@ -2018,8 +2019,10 @@ def version_label(script=None, record=None):
     version, commit = r.get("version"), r.get("commit")
     if not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
         return None
-    if r.get("release") is True or not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+    if r.get("release") is True:
         return f"v{version}"
+    if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+        commit = "?"  # not the release, and nobody can tell which commit
     return f"v{version}+{commit[:7]}{'*' if r.get('dirty') is True else ''}"
 
 

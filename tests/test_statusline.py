@@ -1520,6 +1520,15 @@ class Version(unittest.TestCase):
         self.assertIsNone(self.label(bad))
         self.assertIsNone(self.label(self.tmp / "nothing" / "installed.json"))
 
+    def test_an_unreadable_checkout_doesnt_claim_the_release(self):
+        script, _ = self.checkout(self.tmp / "repo")
+        (self.tmp / "repo" / ".git" / "HEAD").write_text("ref: refs/heads/nowhere\n")
+        self.assertEqual(sl.version_label(script=script), "v1.2.3+?")
+
+    def test_a_copy_whose_commit_is_unknown_doesnt_claim_the_release(self):
+        self.assertEqual(self.label(self.record(commit=None, release=False)), "v1.2.3+?")
+
+    @unittest.skipUnless((ROOT / ".git").exists(), "needs this repo's git history")
     def test_this_checkout_matches_its_version_file_and_the_pane(self):
         version = (ROOT / "VERSION").read_text().strip()
         out = subprocess.run([sys.executable, str(ROOT / "statusline" / "statusline.py"), "--version"],
@@ -1527,6 +1536,13 @@ class Version(unittest.TestCase):
         self.assertRegex(out, rf"^v{re.escape(version)}\+[0-9a-f]{{7}}$")
         # the pane is released with the status line, under the same number
         self.assertEqual(json.loads((ROOT / "pane" / ".claude-plugin" / "plugin.json").read_text())["version"], version)
+
+    def test_the_panes_config_toggle_is_the_one_it_reads(self):
+        # register.tsx opens the pane by itself when options.open is true;
+        # /config shows the manifest's field, so the two must agree
+        field = json.loads((ROOT / "pane" / ".claude-plugin" / "plugin.json").read_text())["userConfig"]["open"]
+        self.assertEqual((field["type"], field["default"]), ("boolean", False))
+        self.assertIn("options.open === true", (ROOT / "pane" / "hooks" / "register.tsx").read_text())
 
 
 class VersionPlace(unittest.TestCase):

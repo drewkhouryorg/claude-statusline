@@ -90,6 +90,12 @@ class Live(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
         return json.loads(out.stdout)
 
+    def test_the_version_install_sh_recorded_reaches_the_line_and_the_pane(self):
+        (self.install / "installed.json").write_text(json.dumps(
+            {"by": "claude-statusline", "version": "1.2.3", "commit": "041e552", "release": False}))
+        self.assertIn("v1.2.3+041e552", self.run_sh(self.claude()))
+        self.assertEqual(self.run_json(self.claude())["version"], "v1.2.3+041e552")
+
     def test_json_gives_each_part_as_data_beside_the_drawing(self):
         # what the desktop app's pane reads: the same repo, as data
         got = self.run_json(self.claude())
@@ -311,9 +317,9 @@ class Installer(unittest.TestCase):
         self.home = Path(tmp.name)
         (self.home / ".claude").mkdir()
 
-    def install(self, *args):
-        out = subprocess.run(["bash", str(ROOT / "install.sh"), *args], capture_output=True, text=True,
-                             env={**os.environ, "HOME": str(self.home)}, timeout=60)
+    def install(self, *args, script=ROOT / "install.sh", env=None):
+        out = subprocess.run(["bash", str(script), *args], capture_output=True, text=True,
+                             env={**os.environ, "HOME": str(self.home), **(env or {})}, timeout=60)
         self.assertEqual(out.returncode, 0, out.stdout + out.stderr)
         return out.stdout
 
@@ -372,12 +378,57 @@ class Installer(unittest.TestCase):
         self.assertEqual(len(list(path.parent.glob("settings.json.bak-*"))), len(planted) + 1)
 
     def test_link_installs_link_the_side_pane_to_the_checkout(self):
-        self.install("--link")
+        copy = self.checkout()  # never the real checkout: a slip here deletes what it links to
+        self.install("--link", script=copy / "install.sh")
         pane = self.home / ".claude" / "claude-statusline" / "pane"
-        self.assertEqual(pane.resolve(), (ROOT / "pane").resolve())
-        self.install()  # and a copy install afterwards replaces the link, not the checkout
+        self.assertEqual(pane.resolve(), (copy / "pane").resolve())
+        before = self.files(copy)
+        self.install(script=copy / "install.sh")  # and a copy install afterwards replaces the link, not the checkout
         self.assertFalse(pane.is_symlink())
-        self.assertTrue((ROOT / "pane" / "tests").exists())
+        self.assertEqual(self.files(copy), before)
+
+    def test_uninstalling_a_link_install_leaves_the_checkout_whole(self):
+        copy = self.checkout()
+        before = self.files(copy)
+        self.install("--link", script=copy / "install.sh")
+        self.install("--uninstall", script=copy / "install.sh")
+        self.assertEqual(self.files(copy), before)
+        self.assertFalse(self.dest().exists())
+
+    def test_a_link_install_whose_checkout_moved_can_still_be_removed(self):
+        # from before installed.json: links into a clone that's since gone
+        self.dest().mkdir()
+        for f in ("statusline.py", "statusline.sh", "project-info"):
+            os.symlink(self.home / "gone" / "statusline" / f, self.dest() / f)
+        self.install("--uninstall")
+        self.assertFalse(self.dest().exists())
+
+    def test_finders_ds_store_doesnt_make_the_folder_someone_elses(self):
+        self.install()
+        (self.dest() / ".DS_Store").write_bytes(b"")
+        self.install("--uninstall")
+        self.assertFalse(self.dest().exists())
+        self.dest().mkdir()
+        (self.dest() / ".DS_Store").write_bytes(b"")
+        self.install()
+
+    def test_no_side_pane_where_the_organization_turns_plugin_folders_off(self):
+        # Claude Code won't start with CLAUDE_CODE_PLUGIN_DIRS set under this policy
+        (self.home / ".claude" / "remote-settings.json").write_text(json.dumps({"disableSideloadFlags": True}))
+        out = self.install()
+        self.assertIn("turn plugin folders off", out)
+        self.assertNotIn("env", self.settings())
+
+    def test_a_side_pane_already_set_is_taken_out_under_that_policy(self):
+        self.install()
+        (self.home / ".claude" / "remote-settings.json").write_text(json.dumps({"disableSideloadFlags": True}))
+        self.install()
+        self.assertNotIn("env", self.settings())
+
+    def test_says_when_settings_will_hide_plugin_folders_from_the_shell(self):
+        out = self.install(env={"CLAUDE_CODE_PLUGIN_DIRS": "~/mods/mine"})
+        self.assertIn("your shell also sets ~/mods/mine, which this hides", out)
+        self.assertNotIn("your shell", self.install(env={"CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/claude-statusline/pane"}))
 
     def test_installing_again_keeps_the_interval_set_on_this_computer(self):
         self.install()
@@ -424,6 +475,30 @@ class Installer(unittest.TestCase):
     def record(self):
         return json.loads((self.dest() / "installed.json").read_text())
 
+    def files(self, root):
+        """Every file under root, with its contents."""
+        return {str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob("*")) if p.is_file()}
+
+    def archive_install(self, archival):
+        """Install from a copy without git, as a download is, its .git_archival.txt as given."""
+        copy = self.checkout()
+        (copy / ".git_archival.txt").write_text(archival)
+        self.install(script=copy / "install.sh")
+        return subprocess.run([str(self.dest() / "statusline.py"), "--version"], capture_output=True, text=True).stdout.strip()
+
+    def test_a_download_of_a_release_says_the_release(self):
+        version = (ROOT / "VERSION").read_text().strip()
+        self.assertEqual(self.archive_install(f"commit: 041e552\nrefs: HEAD -> main, tag: v{version}\n"), f"v{version}")
+
+    def test_a_download_of_another_commit_says_which(self):
+        version = (ROOT / "VERSION").read_text().strip()
+        self.assertEqual(self.archive_install("commit: 041e552\nrefs: HEAD -> main\n"), f"v{version}+041e552")
+
+    def test_a_download_that_cant_tell_its_commit_doesnt_claim_the_release(self):
+        version = (ROOT / "VERSION").read_text().strip()
+        self.assertEqual(self.archive_install("commit: $Format:%h$\nrefs: $Format:%D$\n"), f"v{version}+?")
+
+    @unittest.skipUnless((ROOT / ".git").exists(), "needs this repo's git history")
     def test_the_install_records_what_it_is(self):
         self.install()
         r = self.record()
@@ -479,6 +554,7 @@ class Installer(unittest.TestCase):
         shutil.copytree(ROOT / "statusline", copy / "statusline", ignore=shutil.ignore_patterns("cache", "__pycache__", "error.log"))
         shutil.copy(ROOT / "install.sh", copy)
         shutil.copy(ROOT / "VERSION", copy)
+        shutil.copytree(ROOT / "pane", copy / "pane", ignore=shutil.ignore_patterns("node_modules"))
         return copy
 
     def test_refuses_to_install_onto_its_own_files(self):

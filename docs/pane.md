@@ -4,7 +4,7 @@ The side pane draws the status line's parts in a pane of their own, with more ro
 
 Where it appears:
 
-- **In a fullscreen terminal** (Claude Code's default), beside the transcript, once the terminal is 144 columns wide. From 34 columns across, it spells each part out with bigger tanks, the week chart across the pane, and labels that say what each number is. Narrower than that, it stacks the status line's own parts.
+- **In a fullscreen terminal** (Claude Code's default), beside the transcript from 110 columns wide. In a narrower terminal it sits above the prompt and shows the status line itself. Opened by itself (the `/config` setting), it waits for 144 columns. From 34 columns across, it spells each part out with bigger tanks, the week chart across the pane, and labels that say what each number is. Narrower than that, it stacks the status line's own parts.
 - **In a terminal that isn't fullscreen**, such as tmux, above the prompt, showing the status line itself.
 - **In the Claude desktop app's Code tab, and the mobile app**, as a card for each part, with the tanks and the week drawn as charts.
 

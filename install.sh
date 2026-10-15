@@ -55,9 +55,12 @@ fi
 # or, from before records, a statusline.py of this project's. Anything else
 # there is somebody else's: change nothing.
 owned() {
-  grep -qs '"by": "claude-statusline"' "$DEST/installed.json" || grep -qs CLAUDE_STATUSLINE_DATA "$DEST/statusline.py"
+  grep -qs '"by": "claude-statusline"' "$DEST/installed.json" || grep -qs CLAUDE_STATUSLINE_DATA "$DEST/statusline.py" ||
+    # a --link install whose checkout has since moved: its links lead nowhere
+    [[ -L $DEST/statusline.py && $(readlink "$DEST/statusline.py") == */statusline/statusline.py ]]
 }
-if [[ -d $DEST && -n $(ls -A "$DEST" 2>/dev/null) ]] && ! owned; then
+# Finder's .DS_Store doesn't make a folder anybody's
+if [[ -d $DEST && -n $(ls -A "$DEST" 2>/dev/null | grep -vx .DS_Store) ]] && ! owned; then
   echo "$(show "$DEST") wasn't made by this installer, so it's left as it is." >&2
   [[ $action == install ]] && echo "Move it, or set CLAUDE_STATUSLINE_DEST to install somewhere else." >&2
   exit 1
@@ -67,21 +70,27 @@ fi
 # commit, with * when statusline/ or pane/ have uncommitted changes
 [[ -f $REPO/VERSION ]] || { echo "$REPO/VERSION is missing: run this from a whole checkout" >&2; exit 1; }
 VERSION=$(tr -d '[:space:]' < "$REPO/VERSION")
-COMMIT= DIRTY=false RELEASE=true  # a download without git is a release
-if git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1; then
+COMMIT= DIRTY=false RELEASE=false
+if [[ ! -d $REPO/.git && ! -f $REPO/.git ]]; then
+  # a download: git archive (and GitHub's ZIPs) fill in .git_archival.txt
+  archival=$REPO/.git_archival.txt
+  if [[ -f $archival ]] && ! grep -q 'Format:' "$archival"; then
+    COMMIT=$(sed -n 's/^commit: \([0-9a-f]\{7,\}\)$/\1/p' "$archival" | cut -c1-7)
+    if grep -q "^refs:.*tag: v$VERSION\(,\|\$\)" "$archival"; then RELEASE=true; fi
+  fi
+elif git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1; then
   g() { git -C "$REPO" -c core.fsmonitor=false "$@"; }
   COMMIT=$(g rev-parse --short=7 HEAD 2>/dev/null || true)
   [[ -n $(g status --porcelain --untracked-files=no -- statusline pane 2>/dev/null) ]] && DIRTY=true
-  RELEASE=false
   if [[ $DIRTY == false ]] && g describe --exact-match --tags --match "v$VERSION" HEAD >/dev/null 2>&1; then RELEASE=true; fi
 fi
 LABEL=v$VERSION
-if [[ $RELEASE == false && -n $COMMIT ]]; then
-  LABEL+=+$COMMIT
+if [[ $RELEASE == false ]]; then
+  LABEL+=+${COMMIT:-?}  # ? for a commit nobody can tell
   [[ $DIRTY == true ]] && LABEL+='*'
 fi
 # and what's there now, from its record
-WAS=$(python3 - "$SRC" "$DEST" 2>/dev/null <<'PY' || true
+WAS=$(python3 -B - "$SRC" "$DEST" 2>/dev/null <<'PY' || true  # -B: write nothing into the checkout
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
@@ -132,6 +141,22 @@ def is_pane(entry):
     return os.path.normpath(os.path.expanduser(entry)) == os.path.normpath(str(dest / "pane"))
 
 
+def plugin_dirs_blocked():
+    """Whether the organization's managed settings turn plugin folders off
+    (disableSideloadFlags): Claude Code then won't start with one set."""
+    roots = [Path("/Library/Application Support/ClaudeCode"), Path("/etc/claude-code")]
+    files = [r / "managed-settings.json" for r in roots]
+    files += [f for r in roots if (r / "managed-settings.d").is_dir() for f in sorted((r / "managed-settings.d").glob("*.json"))]
+    files.append(path.parent / "remote-settings.json")  # what the organization's server last sent
+    for f in files:
+        try:
+            if json.loads(f.read_text()).get("disableSideloadFlags") is True:
+                return True
+        except (OSError, ValueError, AttributeError):
+            pass
+    return False
+
+
 dirs = [d for d in env.get(DIRS, "").split(":") if d]
 old = current.get("statusLine")
 mine = isinstance(old, dict) and old.get("command") in ours
@@ -149,12 +174,28 @@ if step == "write":
             if not dry:
                 previous.write_text(json.dumps(old, indent=2) + "\n")
         current["statusLine"] = want
-    if any(is_pane(d) for d in dirs):
+    blocked = plugin_dirs_blocked()
+    if blocked and any(is_pane(d) for d in dirs):
+        kept = [d for d in dirs if not is_pane(d)]
+        if kept:
+            env[DIRS] = ":".join(kept)
+        else:
+            del env[DIRS]
+            if not env:
+                del current["env"]
+        rows.append((DIRS, f"removes {pane}: your organization's settings turn plugin folders off"))
+    elif blocked:
+        rows.append((DIRS, "not set: your organization's settings turn plugin folders off, so no side pane"))
+    elif any(is_pane(d) for d in dirs):
         rows.append((DIRS, "already has the side pane"))
     else:
         env[DIRS] = ":".join(dirs + [pane])
         current["env"] = env
         rows.append((DIRS, f"adds {pane}"))
+        # settings.json's value replaces one exported from the shell
+        shell = [d for d in os.environ.get(DIRS, "").split(":") if d and d not in dirs and not is_pane(d)]
+        if shell:
+            rows.append(("", f"your shell also sets {':'.join(shell)}, which this hides: add it here to keep it"))
 else:  # uninstall
     if not mine:
         rows.append(("statusLine", "isn't this one, so it's left alone" if old else "not set by this install"))
@@ -174,7 +215,7 @@ else:  # uninstall
                 del current["env"]
         rows.append((DIRS, f"removes {pane}"))
 
-changes = [r for r in rows if not r[1].startswith(("already", "isn't", "not set"))]
+changes = [r for r in rows if not r[1].startswith(("already", "isn't", "not set", "your shell"))]
 if not changes:
     print(f"{show(path)} is already set up." if step == "write" else f"Nothing to change in {show(path)}.")
     sys.exit(0)
@@ -218,7 +259,7 @@ if [[ $action == uninstall ]]; then
       echo "Would remove $(show "$DEST")."
     else
       # only what this installer and the status line put there
-      for f in "${FILES[@]}" python installed.json previous-statusline.json error.log; do rm -f "$DEST/$f"; done
+      for f in "${FILES[@]}" python installed.json previous-statusline.json error.log .DS_Store; do rm -f "$DEST/$f"; done
       rm -rf "$DEST/cache" "$DEST/pane"
       if rmdir "$DEST" 2>/dev/null; then
         echo "Removed $(show "$DEST")."

@@ -14,7 +14,7 @@ SCENARIOS = ROOT / "scenarios"
 # The rest of the settings go: run from inside Claude Code, the tests would
 # otherwise inherit yours, and CLAUDE_STATUSLINE_DEST could point the
 # installer tests at your real install.
-for name in [n for n in os.environ if n.startswith("CLAUDE_STATUSLINE_") or n == "CLAUDE_CONFIG_DIR"]:
+for name in [n for n in os.environ if n.startswith("CLAUDE_STATUSLINE_") or n in ("CLAUDE_CONFIG_DIR", "CLAUDE_CODE_PLUGIN_DIRS")]:
     del os.environ[name]
 os.environ["CLAUDE_STATUSLINE_DAY_START"] = "7"
 sys.path.insert(0, str(ROOT / "statusline"))

@@ -99,6 +99,7 @@ The [side pane](docs/pane.md) runs the same reads in each session where it's ope
 - **No ship column:** the repo hasn't been set up for it. See [setting up the ship column](docs/ship-column.md#when-it-doesnt-show).
 - **No 5h or wk numbers:** these need a Claude Pro or Max plan, and they appear after the first reply in a session.
 - **Lines are cut short, or it draws too narrow:** set `CLAUDE_STATUSLINE_COLUMNS` to your terminal's width.
+- **Claude Code won't start, and says `CLAUDE_CODE_PLUGIN_DIRS` is disabled by your organization:** run `./install.sh` again, which takes the side pane out of your settings. If it can't see your organization's policy, remove `~/.claude/claude-statusline/pane` from `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`.
 - **Which version is this?** It's at the right end of the status line when there's room, and `~/.claude/claude-statusline/statusline.py --version` prints it. Please include it in an issue.
 - **Odd characters or misaligned columns:** your terminal font is missing a symbol. Fonts made for terminals, such as Menlo, SF Mono, JetBrains Mono or DejaVu Sans Mono, have them all.
 

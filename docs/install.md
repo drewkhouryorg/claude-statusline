@@ -18,6 +18,8 @@ Then it saves a copy of `settings.json` next to it, with the date in its name, a
 
 It also writes `installed.json` beside the files, recording the version, the commit, and whether the checkout had uncommitted changes. The status line shows the version from it, and the next run reads it to say what it's upgrading from.
 
+Claude Code uses the `CLAUDE_CODE_PLUGIN_DIRS` in `settings.json` in place of one exported from your shell. If your shell sets it, the installer says so: add those folders to the setting to keep them. If your organization's managed settings turn plugin folders off (`disableSideloadFlags`), Claude Code won't start with that setting at all, so the installer leaves the side pane out.
+
 If the install folder is already there with neither that file nor this project's `statusline.py` in it, it belongs to something else. The installer stops without changing anything, and `CLAUDE_STATUSLINE_DEST` can point it somewhere else.
 
 A `settings.json` that's a link, say into a dotfiles repo, stays a link, and keeps its permissions. Running it again changes nothing more. If `settings.json` isn't valid JSON, it stops without touching it.
@@ -36,7 +38,7 @@ A `settings.json` that's a link, say into a dotfiles repo, stays a link, and kee
 
 `VERSION` holds the version number, and each release is a git tag of it, such as `v0.1.0`. The side pane is released with the status line, under the same number in `pane/.claude-plugin/plugin.json`.
 
-An install from a release's commit shows `v0.1.0`. From any other commit it shows `v0.1.0+<commit>`, with `*` after it when `statusline/` or `pane/` had uncommitted changes. A `--link` install shows the commit the checkout is on now.
+An install from a release's commit shows `v0.1.0`. From any other commit it shows `v0.1.0+<commit>`, with `*` after it when `statusline/` or `pane/` had uncommitted changes. A download without git, such as GitHub's ZIP, knows its commit from `.git_archival.txt`, which `git archive` fills in; with no way to tell, it shows `v0.1.0+?`. A `--link` install shows the commit the checkout is on now.
 
 To release, change the number in both files, commit, and tag that commit `v<number>`.
 
