@@ -111,6 +111,8 @@ export type View = {
   ansi: string
   // each part as the terminal draws it, apart, for a tall narrow pane; absent before the install had it
   blocks?: { name: Block; lines: string[] }[]
+  // v0.1.0, with +commit when it isn't that release; null for an install from before versions, absent before the view had it
+  version?: string | null
 }
 
 export type Block = 'tanks' | 'repo' | 'ship' | 'session' | 'week' | 'system' | 'alerts'

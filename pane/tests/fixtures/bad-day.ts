@@ -337,5 +337,6 @@ export const BAD_DAY: View = {
         "\u001b[38;5;143m⚠ \u001b[0m\u001b[38;5;143mmigration pending\u001b[0m\u001b[2m  ·  \u001b[0m\u001b[38;5;143mcache cold\u001b[0m"
       ]
     }
-  ]
+  ],
+  "version": "v0.1.0+041e552*"
 }

@@ -2,6 +2,7 @@
 root: python3 -m unittest discover -s tests"""
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -1442,6 +1443,121 @@ class ProjectInfoRefresh(unittest.TestCase):
                              capture_output=True, text=True)
         self.assertEqual(out.returncode, 1)
         self.assertEqual(self.section("prs")["error"], "no-such-gh: command not found")
+
+
+GIT = ["git", "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false",
+       "-c", "init.defaultBranch=main"]
+
+
+class Version(unittest.TestCase):
+    """The version beside the status line: from the checkout the files come
+    from, read without running git, else from install.sh's record."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.tmp = Path(tmp.name)
+
+    def checkout(self, at):
+        """A checkout of this project's shape at version 1.2.3, one commit in; returns its script and commit."""
+        (at / "statusline").mkdir(parents=True)
+        (at / "statusline" / "statusline.py").write_text("")
+        (at / "install.sh").write_text("")
+        (at / "VERSION").write_text("1.2.3\n")
+        subprocess.run(GIT + ["init", "-q", str(at)], check=True)
+        subprocess.run(GIT + ["-C", str(at), "add", "."], check=True)
+        subprocess.run(GIT + ["-C", str(at), "commit", "-qm", "one"], check=True)
+        sha = subprocess.run(GIT + ["-C", str(at), "rev-parse", "--short=7", "HEAD"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        return at / "statusline" / "statusline.py", sha
+
+    def record(self, **fields):
+        path = self.tmp / "install" / "installed.json"
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(json.dumps({"by": "claude-statusline", "version": "1.2.3", **fields}))
+        return path
+
+    def label(self, record):
+        # a copy install: the script's folder has no checkout above it
+        return sl.version_label(script=record.parent / "statusline.py", record=record)
+
+    def test_a_checkout_says_its_commit(self):
+        script, sha = self.checkout(self.tmp / "repo")
+        self.assertEqual(sl.version_label(script=script), f"v1.2.3+{sha}")
+
+    def test_a_link_install_reads_the_checkout_it_links_to(self):
+        script, sha = self.checkout(self.tmp / "repo")
+        (self.tmp / "install").mkdir()
+        os.symlink(script, self.tmp / "install" / "statusline.py")
+        self.assertEqual(sl.version_label(script=self.tmp / "install" / "statusline.py"), f"v1.2.3+{sha}")
+
+    def test_packed_refs_and_worktrees_are_read_too(self):
+        script, sha = self.checkout(self.tmp / "repo")
+        subprocess.run(GIT + ["-C", str(self.tmp / "repo"), "pack-refs", "--all"], check=True)
+        self.assertFalse((self.tmp / "repo" / ".git" / "refs" / "heads" / "main").exists())
+        self.assertEqual(sl.version_label(script=script), f"v1.2.3+{sha}")
+        subprocess.run(GIT + ["-C", str(self.tmp / "repo"), "worktree", "add", "-q", "-b", "other",
+                              str(self.tmp / "tree")], check=True)
+        self.assertEqual(sl.version_label(script=self.tmp / "tree" / "statusline" / "statusline.py"), f"v1.2.3+{sha}")
+
+    def test_a_detached_checkout_says_its_commit(self):
+        script, sha = self.checkout(self.tmp / "repo")
+        subprocess.run(GIT + ["-C", str(self.tmp / "repo"), "checkout", "-q", "--detach"], check=True)
+        self.assertEqual(sl.version_label(script=script), f"v1.2.3+{sha}")
+
+    def test_a_copy_of_a_release_says_just_the_version(self):
+        self.assertEqual(self.label(self.record(commit="041e552", release=True)), "v1.2.3")
+
+    def test_a_copy_of_other_code_says_its_commit_and_whether_it_was_changed(self):
+        self.assertEqual(self.label(self.record(commit="041e552", release=False)), "v1.2.3+041e552")
+        self.assertEqual(self.label(self.record(commit="041e552", release=False, dirty=True)), "v1.2.3+041e552*")
+
+    def test_a_record_that_isnt_ours_or_isnt_whole_says_nothing(self):
+        self.assertIsNone(self.label(self.record(by="something-else")))
+        self.assertIsNone(self.label(self.record(version="one")))
+        bad = self.record()
+        bad.write_text("{not json")
+        self.assertIsNone(self.label(bad))
+        self.assertIsNone(self.label(self.tmp / "nothing" / "installed.json"))
+
+    def test_this_checkout_matches_its_version_file_and_the_pane(self):
+        version = (ROOT / "VERSION").read_text().strip()
+        out = subprocess.run([sys.executable, str(ROOT / "statusline" / "statusline.py"), "--version"],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        self.assertRegex(out, rf"^v{re.escape(version)}\+[0-9a-f]{{7}}$")
+        # the pane is released with the status line, under the same number
+        self.assertEqual(json.loads((ROOT / "pane" / ".claude-plugin" / "plugin.json").read_text())["version"], version)
+
+
+class VersionPlace(unittest.TestCase):
+    """The version is the least of what the line says: bottom right, else
+    the second row, else nowhere."""
+    LABEL = "v1.2.3+041e552"
+
+    def lines(self, cols):
+        inp = fixture("1-healthy")
+        inp["version"] = self.LABEL
+        return visible(sl.render(inp, cols)).split("\n")
+
+    def test_bottom_right_when_the_last_row_has_room(self):
+        lines = self.lines(200)
+        self.assertTrue(lines[3].endswith(" " + self.LABEL))
+        self.assertEqual(len(lines[3]), 200)
+
+    def test_the_second_row_when_the_last_is_full(self):
+        lines = self.lines(140)
+        self.assertNotIn(self.LABEL, lines[3])
+        self.assertTrue(lines[1].endswith(" " + self.LABEL))
+
+    def test_left_off_rather_than_crowding_anything(self):
+        self.assertNotIn(self.LABEL, "\n".join(self.lines(100)))
+        self.assertEqual(self.lines(100), visible(sl.render(fixture("1-healthy"), 100)).split("\n"))
+
+    def test_it_moves_nothing_else(self):
+        # every other cell of the drawing is where it was without a version
+        bare = visible(sl.render(fixture("1-healthy"), 200)).split("\n")
+        for got, was in zip(self.lines(200), bare):
+            self.assertEqual(got.replace(self.LABEL, "").rstrip(), was.rstrip())
 
 
 if __name__ == "__main__":

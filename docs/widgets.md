@@ -109,6 +109,12 @@ A fifth line appears only when something needs you:
 - `cache cold` when the prompt cache has expired
 - CPU, memory or battery alerts that had no column to go in
 
+## Version
+
+The version you're running is in dim text at the right end of the bottom row. When that row is full it moves to the second row, and when neither has room it's left out.
+
+`v0.1.0` is a release. Anything else carries the commit it came from, as in `v0.1.0+041e552`, with `*` after it when it was installed with uncommitted changes. An install from before versions shows nothing until you run `./install.sh` again.
+
 ## Widths
 
 The same session at 80, 120, 160 and 240 columns:

@@ -80,7 +80,7 @@ Set these in the `env` block of `~/.claude/settings.json`. None are needed.
 
 ## Files it writes
 
-- **`~/.claude/claude-statusline/`:** the three files, the side pane in `pane/`, the `python3` the installer chose, and your earlier `statusLine` if it replaced one.
+- **`~/.claude/claude-statusline/`:** the three files, the side pane in `pane/`, the `python3` the installer chose, `installed.json` saying which version it installed, and your earlier `statusLine` if it replaced one.
 - **`~/.claude/claude-statusline/cache/`:** the last drawing for each session, and short-lived git and system readings. Files unused for a day are removed.
 - **`~/.claude/usage-sensor/<session>.json`:** this session's usage, for your own hooks to read. See [usage files](docs/usage-files.md).
 - **`~/.claude/usage-sensor/history.jsonl`:** the week log the chart learns from, a few KB a week.
@@ -99,6 +99,7 @@ The [side pane](docs/pane.md) runs the same reads in each session where it's ope
 - **No ship column:** the repo hasn't been set up for it. See [setting up the ship column](docs/ship-column.md#when-it-doesnt-show).
 - **No 5h or wk numbers:** these need a Claude Pro or Max plan, and they appear after the first reply in a session.
 - **Lines are cut short, or it draws too narrow:** set `CLAUDE_STATUSLINE_COLUMNS` to your terminal's width.
+- **Which version is this?** It's at the right end of the status line when there's room, and `~/.claude/claude-statusline/statusline.py --version` prints it. Please include it in an issue.
 - **Odd characters or misaligned columns:** your terminal font is missing a symbol. Fonts made for terminals, such as Menlo, SF Mono, JetBrains Mono or DejaVu Sans Mono, have them all.
 
 ## More

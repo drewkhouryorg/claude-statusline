@@ -2,6 +2,7 @@
   "_about": "Everything wrong at once: ctx nearly full, 5h burning out in minutes, CI red, prod deploy failed, stale PR data, low battery, hot CPU. wk is 71% but on day 6, so pace keeps it green.",
   "now": 1759400000,
   "columns": 120,
+  "version": "v0.1.0+041e552*",
   "claude": {
     "session_id": "a1b2c3d4-5e6f-4a1b-9c8d-0123456789ab",
     "session_name": "statusline redesign",

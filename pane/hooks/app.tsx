@@ -186,6 +186,11 @@ export function appView(el: AppElements, v: View, columns: number): RenderElemen
       <Box flexDirection="row" flexWrap="wrap" justifyContent="space-between" rowGap={1} width="100%">
         {cards.filter((c): c is RenderElement => !!c)}
       </Box>
+      {v.version && (
+        <Box justifyContent="flex-end">
+          <Text dimColor>{v.version}</Text>
+        </Box>
+      )}
     </Box>
   )
 }

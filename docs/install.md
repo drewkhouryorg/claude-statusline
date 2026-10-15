@@ -16,6 +16,10 @@ It copies `statusline.sh`, `statusline.py`, the `project-info` helper and the si
 
 Then it saves a copy of `settings.json` next to it, with the date in its name, and changes two things. It sets `statusLine`, and adds the side pane's folder to `CLAUDE_CODE_PLUGIN_DIRS` in `env`, after any folders already there. Every other setting is kept. If you already had a `statusLine`, it's replaced, and kept for `--uninstall` to put back.
 
+It also writes `installed.json` beside the files, recording the version, the commit, and whether the checkout had uncommitted changes. The status line shows the version from it, and the next run reads it to say what it's upgrading from.
+
+If the install folder is already there with neither that file nor this project's `statusline.py` in it, it belongs to something else. The installer stops without changing anything, and `CLAUDE_STATUSLINE_DEST` can point it somewhere else.
+
 A `settings.json` that's a link, say into a dotfiles repo, stays a link, and keeps its permissions. Running it again changes nothing more. If `settings.json` isn't valid JSON, it stops without touching it.
 
 ## When it doesn't appear
@@ -26,7 +30,15 @@ A `settings.json` that's a link, say into a dotfiles repo, stays a link, and kee
 
 ## Upgrading
 
-`git pull`, then run `./install.sh` again. With `--link`, the `git pull` alone is enough.
+`git pull`, then run `./install.sh` again. Its first line says what changes, such as `Upgrading ~/.claude/claude-statusline from v0.1.0 to v0.2.0`. With `--link`, the `git pull` alone is enough.
+
+## Versions
+
+`VERSION` holds the version number, and each release is a git tag of it, such as `v0.1.0`. The side pane is released with the status line, under the same number in `pane/.claude-plugin/plugin.json`.
+
+An install from a release's commit shows `v0.1.0`. From any other commit it shows `v0.1.0+<commit>`, with `*` after it when `statusline/` or `pane/` had uncommitted changes. A `--link` install shows the commit the checkout is on now.
+
+To release, change the number in both files, commit, and tag that commit `v<number>`.
 
 ## By hand
 
@@ -62,7 +74,7 @@ Running `install.sh` again keeps the `refreshInterval` you set, so each computer
 ./install.sh --uninstall
 ```
 
-It puts back the `statusLine` you had before installing, or removes the setting if you had none. If you've changed `statusLine` since, it leaves yours alone. It takes the side pane out of `CLAUDE_CODE_PLUGIN_DIRS`, and then deletes the install folder.
+It puts back the `statusLine` you had before installing, or removes the setting if you had none. If you've changed `statusLine` since, it leaves yours alone. It takes the side pane out of `CLAUDE_CODE_PLUGIN_DIRS`, and then deletes the files it installed. The folder goes too, unless something else has put files in it.
 
 It leaves these for you to remove if you want:
 

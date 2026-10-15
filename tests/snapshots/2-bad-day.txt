@@ -21,7 +21,7 @@ ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398�
 
 ── 120 columns ──
 ▕91▏▕94▏▕71◂   acme-shop             ┃ main  ✓✓✗✗✗                             ┃ Opus 5.5 xhigh · 3h10m
-▕██▏▕██▏▕██▏   feat/rewards          ┃ prod  ✗ deploy failed · 12m · 9 behind  ┃ statusline redesign
+▕██▏▕██▏▕██▏   feat/rewards          ┃ prod  ✗ deploy failed · 12m · 9 behind  ┃ statusline redesign     v0.1.0+041e552*
 ▕██▏▕██◂▕██▏   ●7 ✚4 ↑5 ↓2 · 3h      ┃ stg   ⟳ deploying                       ┃ a1b2c3d4 · +1.2k −480
 ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398✗ · 2 need… ┃ 5h out ~6m · wk ██████████████▓▓▓░░░ ~…
 ⚠ migration pending  ·  cache cold  ·  batt 22%  ·  cpu ▮▮▮▮▮▮▮▮ 100% · 3 cpu wait · node  ·  mem pressure warn · comp …
@@ -37,13 +37,13 @@ ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398�
 ▕91▏▕94▏▕71◂   acme-shop             ┃ main  ✓✓✗✗✗                                            ┃ Opus 5.5 xhigh · 3h10m ┃  ▁▁    ▁▁ ▂▂ ▂▂        71% now
 ▕██▏▕██▏▕██▏   feat/rewards          ┃ prod  ✗ deploy failed · 12m · 9 behind                 ┃ statusline redesign    ┃  ██ ▇▇ ██ ██ ██    ██  ~83% by Fri 10am
 ▕██▏▕██◂▕██▏   ●7 ✚4 ↑5 ↓2 · 3h      ┃ stg   ⟳ deploying                                      ┃ a1b2c3d4 · +1.2k −480  ┃  12  9 12 14 13  0 11  29% left today
-ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398✗ · 2 need review · 3h old ┃                        ┃  Fr Sa Su Mo Tu We Th  5h out ~6m
+ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398✗ · 2 need review · 3h old ┃                        ┃  Fr Sa Su Mo Tu We Th  5h out ~6m                               v0.1.0+041e552*
 ⚠ migration pending  ·  cache cold  ·  batt 22%  ·  cpu ▮▮▮▮▮▮▮▮ 100% · 3 cpu wait · node  ·  mem pressure warn · comp 6.5G ↑ · swap 1.8G ↑ · Chrome 8.1G
 
 ── 240 columns ──
 ▕91▏▕94▏▕71◂   acme-shop             ┃ main  ✓✓✗✗✗                                            ┃ Opus 5.5 xhigh · 3h10m ┃  ▁▁    ▁▁ ▂▂ ▂▂        71% now          ┃ cpu ▮▮▮▮▮▮▮▮ 100%
 ▕██▏▕██▏▕██▏   feat/rewards          ┃ prod  ✗ deploy failed · 12m · 9 behind                 ┃ statusline redesign    ┃  ██ ▇▇ ██ ██ ██    ██  ~83% by Fri 10am ┃     3 cpu wait · node · batt 22%
 ▕██▏▕██◂▕██▏   ●7 ✚4 ↑5 ↓2 · 3h      ┃ stg   ⟳ deploying                                      ┃ a1b2c3d4 · +1.2k −480  ┃  12  9 12 14 13  0 11  29% left today   ┃ mem ▮▮▮▮▮▯▯▯ 63% · comp 6.5G ↑ · swap 1.8G ↑
-ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398✗ · 2 need review · 3h old ┃                        ┃  Fr Sa Su Mo Tu We Th  5h out ~6m       ┃     pressure warn · Chrome 8.1G
+ctx  5h  wk    #142 ✗ 2/12 ⟲ changes ┃ PRs   #412✗ #409✓ #405⟳ #398✗ · 2 need review · 3h old ┃                        ┃  Fr Sa Su Mo Tu We Th  5h out ~6m       ┃     pressure warn · Chrome 8.1G                               v0.1.0+041e552*
 ⚠ migration pending  ·  cache cold
 

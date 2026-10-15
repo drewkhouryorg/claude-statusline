@@ -80,6 +80,19 @@ test('the apps draw the tanks, the week and the meter bars as pictures', async (
   }
 })
 
+test('the apps say which version is running, in small print', async ($, on) => {
+  session(on, JSON_OUT)
+  await $.command.run(TYPED)
+
+  for (const surface of ['desktop', 'mobile'] as const) {
+    const ui = await $.ui.mount(pane(surface))
+    const version = await ui.find({ type: 'Text', text: BAD_DAY.version! })
+
+    expect(version?.props.dimColor).toBe(true)
+    await ui.unmount()
+  }
+})
+
 test("the apps' drawings are images, which the app sizes to their own proportions", async ($, on) => {
   session(on, JSON_OUT)
   await $.command.run(TYPED)

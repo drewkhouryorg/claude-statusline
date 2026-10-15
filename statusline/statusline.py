@@ -14,6 +14,7 @@ apart from rendering so the renderer can be driven from fixtures:
 
   statusline.py                 live: reads Claude Code's JSON on stdin
   statusline.py --json          live, but each part as data (see `view`)
+  statusline.py --version       which version this is (see `version_label`)
   statusline.py --scenario F    renders one scenario file (see scenarios/)
 
 The status line never runs repo code. Project data comes only from
@@ -300,6 +301,7 @@ def build_model(inp):
         "project": clean_project(inp.get("project")),
         "system": inp.get("system") or {},
         "week_history": inp.get("week_history") or [],
+        "version": sanitize(inp["version"], 40) if isinstance(inp.get("version"), str) else None,
     }
 
 
@@ -1123,9 +1125,30 @@ def render_lines(inp, cols=None):
     lines, machine = layout_columns(m, cols)
     if max(width(l) for l in lines) > cols or cols < WIDE_MIN:
         lines, machine = layout_rows(m, cols), False
+    lines = with_version(lines, m["version"], cols)
     news = alerts_line(m, machine)
     if news:
         lines.append(truncate(news, cols))
+    return lines
+
+
+def with_version(lines, label, cols):
+    """The version, dim at the right edge of the bottom row, else of the
+    second; left off when neither has room to spare beside what it says."""
+    if not label:
+        return lines
+    tag = [seg(label, DIM)]
+    for r in (3, 1):
+        if r >= len(lines):
+            continue
+        line = list(lines[r])
+        while line and not line[-1][0].strip():  # the padding after its last words
+            line.pop()
+        if line:
+            line[-1] = (line[-1][0].rstrip(), *line[-1][1:])
+        if width(line) + 3 + width(tag) <= cols:
+            lines[r] = line + [seg(" " * (cols - width(line) - width(tag)))] + tag
+            break
     return lines
 
 
@@ -1164,6 +1187,7 @@ def view(inp, cols=None):
                    for line in notice_rows(m) + [refresh_alert(m)] + [cache_alert(m)] if line],
         "ansi": render(inp, cols),
         "blocks": view_blocks(m),
+        "version": m["version"],
     })
 
 
@@ -1942,13 +1966,70 @@ def gather(c):
         "system": slow.get("system") or {},
         "week_history": week_history,
         "now": now,
+        "version": version_label(),
     }
+
+
+# ---- version ---------------------------------------------------------------
+INSTALLED = HERE / "installed.json"  # install.sh's record of what it installed
+
+
+def checkout_head(root):
+    """The commit a git checkout is on, read from its files rather than by
+    running git on every refresh. None when they can't be read."""
+    try:
+        gitdir = root / ".git"
+        if gitdir.is_file():  # a worktree: .git names its folder
+            gitdir = root / gitdir.read_text().split("gitdir:", 1)[1].strip()
+        head = (gitdir / "HEAD").read_text().strip()
+        if not head.startswith("ref: "):
+            return head[:7] or None
+        ref = head[5:]
+        common = gitdir / (gitdir / "commondir").read_text().strip() if (gitdir / "commondir").is_file() else gitdir
+        for d in (gitdir, common):
+            if (d / ref).is_file():
+                return (d / ref).read_text().strip()[:7] or None
+        for line in (common / "packed-refs").read_text().splitlines():
+            if line.endswith(" " + ref):
+                return line[:7]
+    except (OSError, IndexError, UnicodeDecodeError):
+        pass
+    return None
+
+
+def version_label(script=None, record=None):
+    """`v0.1.0` for a release, or with the commit for anything else:
+    `v0.1.0+041e552` run from a checkout (linked, or in place), and from a
+    copy installed out of one, `*` after it when it had uncommitted changes.
+    None for an install from before versions."""
+    root = Path(os.path.realpath(script or __file__)).parents[1]
+    if (root / "VERSION").is_file() and (root / "install.sh").is_file():
+        version = (read_text(root / "VERSION") or "").strip()
+        if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+            return None
+        head = checkout_head(root)
+        return f"v{version}+{head}" if head else f"v{version}"
+    try:
+        r = json.loads((record or INSTALLED).read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(r, dict) or r.get("by") != "claude-statusline":
+        return None
+    version, commit = r.get("version"), r.get("commit")
+    if not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        return None
+    if r.get("release") is True or not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+        return f"v{version}"
+    return f"v{version}+{commit[:7]}{'*' if r.get('dirty') is True else ''}"
 
 
 # ---- entry -----------------------------------------------------------------
 
 
 def main(argv):
+    if argv[:1] == ["--version"]:
+        print(version_label() or "unknown: installed before versions; run install.sh again")
+        return
     if argv[:1] == ["--scenario"]:
         inp = json.loads(Path(argv[1]).read_text())
         print(render(inp))

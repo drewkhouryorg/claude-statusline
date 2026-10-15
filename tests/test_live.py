@@ -418,11 +418,67 @@ class Installer(unittest.TestCase):
         self.assertFalse((self.home / ".claude" / "settings.json").exists())
         self.assertFalse((self.home / ".claude" / "claude-statusline").exists())
 
+    def dest(self):
+        return self.home / ".claude" / "claude-statusline"
+
+    def record(self):
+        return json.loads((self.dest() / "installed.json").read_text())
+
+    def test_the_install_records_what_it_is(self):
+        self.install()
+        r = self.record()
+        self.assertEqual((r["by"], r["version"], r["mode"]), ("claude-statusline", (ROOT / "VERSION").read_text().strip(), "copy"))
+        self.assertRegex(r["commit"], r"^[0-9a-f]{7}$")
+        out = subprocess.run([str(self.dest() / "statusline.py"), "--version"], capture_output=True, text=True).stdout
+        self.assertTrue(out.startswith("v" + r["version"]))
+
+    def test_upgrading_says_from_what_to_what(self):
+        self.install()
+        r = self.record()
+        (self.dest() / "installed.json").write_text(json.dumps({**r, "commit": "0000aaa", "release": False, "dirty": False}))
+        self.assertRegex(self.install().splitlines()[0], r"^Upgrading ~/\.claude/claude-statusline from v[\d.]+\+0000aaa to v")
+        self.assertTrue(self.install().startswith("Reinstalling v"))
+
+    def test_an_install_from_before_records_is_upgraded_and_recorded(self):
+        self.dest().mkdir()
+        shutil.copy(ROOT / "statusline" / "statusline.py", self.dest())
+        self.assertRegex(self.install().splitlines()[0], r"^Upgrading ~/\.claude/claude-statusline to v")
+        self.assertEqual(self.record()["by"], "claude-statusline")
+
+    def test_a_folder_it_didnt_make_is_left_alone(self):
+        # another tool's folder of the same name, and its status line in settings
+        self.dest().mkdir()
+        (self.dest() / "statusline.sh").write_text("theirs")
+        path = self.home / ".claude" / "settings.json"
+        settings = json.dumps({"statusLine": {"type": "command", "command": str(self.dest() / "statusline.sh")}})
+        path.write_text(settings)
+        for args in ([], ["--uninstall"]):
+            with self.subTest(args=args):
+                out = subprocess.run(["bash", str(ROOT / "install.sh"), *args], capture_output=True, text=True,
+                                     env={**os.environ, "HOME": str(self.home)}, timeout=60)
+                self.assertEqual(out.returncode, 1)
+                self.assertIn("wasn't made by this installer", out.stderr)
+                self.assertEqual(sorted(p.name for p in self.dest().iterdir()), ["statusline.sh"])
+                self.assertEqual((self.dest() / "statusline.sh").read_text(), "theirs")
+                self.assertEqual(path.read_text(), settings)
+
+    def test_uninstall_removes_only_what_it_put_there(self):
+        self.install()
+        (self.dest() / "notes.txt").write_text("mine")
+        self.install("--uninstall")
+        self.assertEqual([p.name for p in self.dest().iterdir()], ["notes.txt"])
+
+    def test_uninstall_removes_the_folder_when_nothing_else_is_in_it(self):
+        self.install()
+        self.install("--uninstall")
+        self.assertFalse(self.dest().exists())
+
     def checkout(self):
         """A copy of the repo's installer and status line, for tests that could damage them."""
         copy = self.home / "checkout"
         shutil.copytree(ROOT / "statusline", copy / "statusline", ignore=shutil.ignore_patterns("cache", "__pycache__", "error.log"))
         shutil.copy(ROOT / "install.sh", copy)
+        shutil.copy(ROOT / "VERSION", copy)
         return copy
 
     def test_refuses_to_install_onto_its_own_files(self):

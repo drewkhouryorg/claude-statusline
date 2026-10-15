@@ -82,3 +82,10 @@ test("changes are spelled out where they fit, else written short", async () => {
   expect(lines(80)).toContain('Changes  ●7 staged · ✚4 modified · ↑5 ahead · ↓2 behind')
   expect(lines(46)).toContain('Changes  ●7 ✚4 ↑5 ↓2')
 })
+
+test('the version is small print at the foot, flush right', async () => {
+  const out = lines(46)
+
+  expect(out[out.length - 1]).toBe(BAD_DAY.version!.padStart(46))
+  expect(termView({ ...BAD_DAY, version: null }, 46).map(text)).not.toContain(BAD_DAY.version!.padStart(46))
+})

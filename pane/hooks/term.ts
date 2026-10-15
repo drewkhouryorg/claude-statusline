@@ -35,6 +35,7 @@ export function termView(v: View, width: number): Segment[][] {
   if (v.ship) section('Ship', ship(v.ship))
   section('Session', session(v.session))
   if (v.system) section('System', system(v.system, width))
+  if (v.version) out.push([], [dim(v.version.padStart(width))])
   return out
 }
 

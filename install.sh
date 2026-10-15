@@ -51,6 +51,46 @@ if [[ -d $DEST && $(cd "$DEST" && pwd -P) == $(cd "$SRC" && pwd -P) ]]; then
   exit 1
 fi
 
+# The install folder is this installer's when it holds the record it writes,
+# or, from before records, a statusline.py of this project's. Anything else
+# there is somebody else's: change nothing.
+owned() {
+  grep -qs '"by": "claude-statusline"' "$DEST/installed.json" || grep -qs CLAUDE_STATUSLINE_DATA "$DEST/statusline.py"
+}
+if [[ -d $DEST && -n $(ls -A "$DEST" 2>/dev/null) ]] && ! owned; then
+  echo "$(show "$DEST") wasn't made by this installer, so it's left as it is." >&2
+  [[ $action == install ]] && echo "Move it, or set CLAUDE_STATUSLINE_DEST to install somewhere else." >&2
+  exit 1
+fi
+
+# What's being installed: the version, and unless it's that release, the
+# commit, with * when statusline/ or pane/ have uncommitted changes
+[[ -f $REPO/VERSION ]] || { echo "$REPO/VERSION is missing: run this from a whole checkout" >&2; exit 1; }
+VERSION=$(tr -d '[:space:]' < "$REPO/VERSION")
+COMMIT= DIRTY=false RELEASE=true  # a download without git is a release
+if git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1; then
+  g() { git -C "$REPO" -c core.fsmonitor=false "$@"; }
+  COMMIT=$(g rev-parse --short=7 HEAD 2>/dev/null || true)
+  [[ -n $(g status --porcelain --untracked-files=no -- statusline pane 2>/dev/null) ]] && DIRTY=true
+  RELEASE=false
+  if [[ $DIRTY == false ]] && g describe --exact-match --tags --match "v$VERSION" HEAD >/dev/null 2>&1; then RELEASE=true; fi
+fi
+LABEL=v$VERSION
+if [[ $RELEASE == false && -n $COMMIT ]]; then
+  LABEL+=+$COMMIT
+  [[ $DIRTY == true ]] && LABEL+='*'
+fi
+# and what's there now, from its record
+WAS=$(python3 - "$SRC" "$DEST" 2>/dev/null <<'PY' || true
+import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import statusline
+dest = Path(sys.argv[2])
+print(statusline.version_label(script=dest / "-" / "statusline.py", record=dest / "installed.json") or "")
+PY
+)
+
 settings_step() {  # check | write | uninstall
   python3 - "$1" "$SETTINGS" "$DEST" "$dry" <<'PY'
 import json, os, shlex, shutil, stat, sys, time
@@ -172,13 +212,19 @@ PY
 if [[ $action == uninstall ]]; then
   # settings first, so Claude Code never points at files that are gone
   [[ $settings == yes ]] && settings_step uninstall
-  if [[ -e $DEST/statusline.sh || -L $DEST/statusline.sh ]]; then
+  if [[ -d $DEST ]]; then
     echo
     if [[ $dry == yes ]]; then
       echo "Would remove $(show "$DEST")."
     else
-      rm -rf "$DEST"
-      echo "Removed $(show "$DEST")."
+      # only what this installer and the status line put there
+      for f in "${FILES[@]}" python installed.json previous-statusline.json error.log; do rm -f "$DEST/$f"; done
+      rm -rf "$DEST/cache" "$DEST/pane"
+      if rmdir "$DEST" 2>/dev/null; then
+        echo "Removed $(show "$DEST")."
+      else
+        echo "Removed this install from $(show "$DEST"), and left the folder: it holds files the installer didn't put there."
+      fi
     fi
   fi
   cat <<EOF
@@ -195,9 +241,28 @@ fi
 [[ $settings == yes ]] && settings_step check
 
 how="as copies"; [[ $mode == link ]] && how="as links to this checkout"
-[[ $dry == yes ]] && verb="Would install" || verb=Installing
+older() {  # whether version $1 comes before version $2
+  [[ $1 != "$2" && $(printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | head -1) == "$1" ]]
+}
+was_version=${WAS#v}; was_version=${was_version%%[+*]*}
+if ! owned; then
+  doing="install $LABEL to $(show "$DEST")"
+elif [[ -z $WAS ]]; then
+  doing="upgrade $(show "$DEST") to $LABEL"
+elif [[ $WAS == "$LABEL" ]]; then
+  doing="reinstall $LABEL in $(show "$DEST")"
+elif older "$VERSION" "$was_version"; then
+  doing="go back from $WAS to $LABEL in $(show "$DEST")"
+else
+  doing="upgrade $(show "$DEST") from $WAS to $LABEL"
+fi
+if [[ $dry == yes ]]; then
+  doing="Would $doing"
+else
+  doing=$(sed -E 's/^install/Installing/; s/^upgrade/Upgrading/; s/^reinstall/Reinstalling/; s/^go back/Going back/' <<< "$doing")
+fi
 cat <<EOF
-$verb to $(show "$DEST") ($how):
+$doing ($how):
   statusline.sh, statusline.py   the status line, run with $(show "$PYTHON")
   project-info                   the ship column's helper
   pane/                          the side pane
@@ -226,6 +291,16 @@ if [[ $dry == no ]]; then
     cp -R "$REPO/pane/hooks" "$DEST/pane/"
     cp "$REPO/pane/types/index.d.ts" "$DEST/pane/types/"
   fi
+  # what this is, for the status line to show and the next run to recognise
+  python3 - "$DEST/installed.json" "$VERSION" "$COMMIT" "$DIRTY" "$RELEASE" "$mode" <<'PY'
+import json, sys, time
+path, version, commit, dirty, release, mode = sys.argv[1:]
+with open(path, "w") as f:
+    json.dump({"by": "claude-statusline", "version": version, "commit": commit or None, "dirty": dirty == "true",
+               "release": release == "true", "mode": mode, "installed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z")},
+              f, indent=2)
+    f.write("\n")
+PY
 fi
 
 # and settings last, so they never point at files that failed to install
