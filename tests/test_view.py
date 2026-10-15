@@ -1,10 +1,31 @@
 """statusline.py --json: each part as data, for a surface that draws it
 itself. It must carry the same numbers and judgements the terminal draws."""
 import json
+import os
 import sys
+import time
 import unittest
 
 from support import ROOT, plain, scenario, sl, visible
+
+_tz = None
+
+
+def setUpModule():
+    # the week's days end at the day-start hour in local time: the scenarios
+    # were written for UTC, as test_scenarios runs them
+    global _tz
+    _tz = os.environ.get("TZ")
+    os.environ["TZ"] = "UTC"
+    time.tzset()
+
+
+def tearDownModule():
+    if _tz is None:
+        os.environ.pop("TZ", None)
+    else:
+        os.environ["TZ"] = _tz
+    time.tzset()
 
 
 def view(name, **changes):
@@ -44,9 +65,11 @@ class View(unittest.TestCase):
         self.assertEqual([str(d["number"]) for d in days if d["number"] is not None], under_bars)
 
     def test_week_days_say_which_are_done_today_and_to_come(self):
-        days = view("2-bad-day")["week"]["days"]
-        self.assertEqual([d["when"] for d in days], ["past"] * 5 + ["now", "later"])
-        self.assertEqual(days[-1]["tone"], "grey")
+        # the bad day falls on the week's last day; the healthy one has three to come
+        self.assertEqual([d["when"] for d in view("2-bad-day")["week"]["days"]], ["past"] * 6 + ["now"])
+        days = view("1-healthy")["week"]["days"]
+        self.assertEqual([d["when"] for d in days], ["past"] * 3 + ["now"] + ["later"] * 3)
+        self.assertEqual({d["tone"] for d in days if d["when"] == "later"}, {"grey"})
 
     def test_week_lines_are_the_words_beside_the_chart(self):
         lines = [l["text"] for l in view("2-bad-day")["week"]["lines"]]
