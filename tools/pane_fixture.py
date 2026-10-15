@@ -34,7 +34,7 @@ def fixture():
     # the week's days follow local time: pin one, so every machine writes the
     # same file, and one where the bad day's week still has a day to come
     tz = os.environ.get("TZ")
-    os.environ["TZ"] = "America/New_York"
+    os.environ["TZ"] = "EST5EDT,M3.2.0,M11.1.0"  # New York's rules spelled out: no zone database needed
     time.tzset()
     try:
         view = sl.view(json.loads((ROOT / "scenarios" / "2-bad-day.json").read_text()), 100)
